@@ -12,59 +12,16 @@ export POSTCOPY="\
 
 export SUB_PACKAGES="\
 	$BASE_PACKAGES \
-	brightnessctl \
-	cliphist \
-	dconf-editor \
-	fcitx5-im \
-	fcitx5-chinese-addons \
-	falkon \
-	gnome-calculator \
-	gnome-software \
-	grim \
-	hypridle \
-	hyprland \
-	hyprland-qt-support \
-	hyprlock \
-	hyprpaper \
-	hyprpicker \
-	hyprutils \
-	kitty \
-	kvantum \
-	kvantum-qt5 \
-	mako \
-	network-manager-applet \
-	noto-fonts-cjk \
-	nwg-look \
-	papirus-icon-theme \
-	pavucontrol \
-	polkit-gnome \
-	qt5ct \
-	qt6ct \
-	rofi-wayland \
-	thunar \
-	thunar-archive-plugin \
-	thunar-media-tags-plugin \
-	thunar-volman \
-	tumbler \
-	waybar \
-	xed \
-	xorg-xhost \
-	xdg-desktop-portal-gtk \
-	xdg-desktop-portal-hyprland \
-	wofi \
-	uwsm \
+	$BASE_HYPRLAND_PACKAGES \
 "
 
 export SUB_AUR_PACKAGES="\
 	$BASE_AUR_PACKAGES \
-	hyprshot \
-	tofi \
-	wlogout-git \
+	$BASE_HYPRLAND_AUR_PACKAGES \
 "
 
 export SUB_LOCAL_PACKAGES="\
 	$BASE_LOCAL_PACKAGES \
-	hyprland-git \
 "
 
 export SUB_PACKAGES_TO_DELETE="\
@@ -73,5 +30,5 @@ export SUB_PACKAGES_TO_DELETE="\
 "
 
 sub_postinstallhook() {
-	:
+	hyprland_postinstallhook
 }

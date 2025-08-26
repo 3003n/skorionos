@@ -1,0 +1,56 @@
+#!/bin/bash
+
+export BASE_HYPRLAND_PACKAGES="\
+	brightnessctl \
+	cliphist \
+	dconf-editor \
+	fcitx5-im \
+	fcitx5-chinese-addons \
+	falkon \
+	gnome-calculator \
+	gnome-software \
+	gnome-keyring \
+	grim \
+	hypridle \
+	hyprland \
+	hyprland-qt-support \
+	hyprlock \
+	hyprpaper \
+	hyprpicker \
+	hyprutils \
+	kitty \
+	kvantum \
+	kvantum-qt5 \
+	mako \
+	network-manager-applet \
+	noto-fonts-cjk \
+	nwg-look \
+	papirus-icon-theme \
+	pavucontrol \
+	polkit-gnome \
+	qt5ct \
+	qt6ct \
+	rofi-wayland \
+	thunar \
+	thunar-archive-plugin \
+	thunar-media-tags-plugin \
+	thunar-volman \
+	tumbler \
+	waybar \
+	xed \
+	xorg-xhost \
+	xdg-desktop-portal-gtk \
+	xdg-desktop-portal-hyprland \
+	wofi \
+	uwsm \
+"
+
+export BASE_HYPRLAND_AUR_PACKAGES="\
+	hyprshot \
+	tofi \
+	wlogout-git \
+"
+
+hyprland_postinstallhook() {
+	echo "password	optional	pam_gnome_keyring.so" >> /etc/pam.d/passwd
+}
