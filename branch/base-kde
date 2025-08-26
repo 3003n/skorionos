@@ -27,6 +27,7 @@ export BASE_KDE_PACKAGES="\
 	kscreen \
 	ksshaskpass \
 	kwallet-pam \
+	kwalletmanager \
 	onboard \
 	partitionmanager \
 	plasma-browser-integration \
