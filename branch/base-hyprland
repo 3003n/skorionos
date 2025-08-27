@@ -31,6 +31,7 @@ export BASE_HYPRLAND_PACKAGES="\
 	qt5ct \
 	qt6ct \
 	rofi-wayland \
+	seahorse \
 	thunar \
 	thunar-archive-plugin \
 	thunar-media-tags-plugin \
