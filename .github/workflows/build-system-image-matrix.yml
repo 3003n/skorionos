@@ -134,7 +134,7 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           files: |
-            output/skorionos*img*
+            output/skorionos*
             output/build_info*.txt
             output/sha256sum*.txt
             output/container*.txt
