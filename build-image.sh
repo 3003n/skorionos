@@ -177,19 +177,23 @@ COMRESS_ON_THE_FLY="1"
 
 btrfs subvolume snapshot -r ${BUILD_PATH} ${SNAP_PATH}
 
+# 
+IMG_EXT=".img"
+
 IMG_FILENAME_WITHOUT_EXT="${SYSTEM_NAME}-${VERSION}"
 if [ -z "${NO_COMPRESS}" ]; then
 	if [ -n "${COMRESS_ON_THE_FLY}" ]; then
-		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}.img.xz"
+		# IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}.xz"
+		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}.skosys"
 		btrfs send ${SNAP_PATH} | xz -9 -T0 >${IMG_FILENAME}
 	else
-		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}.img.tar.xz"
-		btrfs send -f ${IMG_FILENAME_WITHOUT_EXT}.img ${SNAP_PATH}
-		tar -c -I"xz -9 -T0" -f ${IMG_FILENAME} ${IMG_FILENAME_WITHOUT_EXT}.img
-		rm ${IMG_FILENAME_WITHOUT_EXT}.img
+		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}.tar.xz"
+		btrfs send -f ${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT} ${SNAP_PATH}
+		tar -c -I"xz -9 -T0" -f ${IMG_FILENAME} ${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}
+		rm ${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}
 	fi
 else
-	IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}.img"
+	IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}"
 	btrfs send -f ${IMG_FILENAME} ${SNAP_PATH}
 fi
 
@@ -246,6 +250,6 @@ else
 	echo "Local build, output IMG directly"
 	if [ -n "${OUTPUT_DIR}" ]; then
 		mkdir -p "${OUTPUT_DIR}"
-		mv ${IMG_FILENAME_WITHOUT_EXT}.img ${OUTPUT_DIR}
+		mv ${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT} ${OUTPUT_DIR}
 	fi
 fi
