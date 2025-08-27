@@ -101,7 +101,7 @@ jobs:
         with:
           name: Build-image-${{ matrix.branch }}
           path: |
-            output/${{ steps.build_image.outputs.image_filename_without_ext }}*img*
+            output/${{ steps.build_image.outputs.image_filename_without_ext }}*
             output/build_info*.txt
             output/sha256sum*.txt
             output/container*.txt
