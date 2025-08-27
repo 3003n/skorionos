@@ -180,11 +180,13 @@ btrfs subvolume snapshot -r ${BUILD_PATH} ${SNAP_PATH}
 # 
 IMG_EXT=".img"
 
+SPECIAL_IMG_EXT=".skosys"
+
 IMG_FILENAME_WITHOUT_EXT="${SYSTEM_NAME}-${VERSION}"
 if [ -z "${NO_COMPRESS}" ]; then
 	if [ -n "${COMRESS_ON_THE_FLY}" ]; then
-		# IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}.xz"
-		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}.skosys"
+		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}.xz"
+		# IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}.skosys"
 		btrfs send ${SNAP_PATH} | xz -9 -T0 >${IMG_FILENAME}
 	else
 		IMG_FILENAME="${IMG_FILENAME_WITHOUT_EXT}${IMG_EXT}.tar.xz"
@@ -211,6 +213,7 @@ if [ ${file_size} -gt ${split_bytes} ]; then
 	# 重命名为最终格式（.part1-3.tar.xz）
 	for i in $(seq 1 $total_parts); do
 		part_num=$(printf "%03d" $((i - 1)))
+		cp "${IMG_FILENAME_WITHOUT_EXT}.part${part_num}" "${IMG_FILENAME_WITHOUT_EXT}.part${i}-${total_parts}${SPECIAL_IMG_EXT}"
 		mv "${IMG_FILENAME_WITHOUT_EXT}.part${part_num}" "${IMG_FILENAME_WITHOUT_EXT}.part${i}-${total_parts}${img_ext}"
 	done
 	rm ${IMG_FILENAME}
