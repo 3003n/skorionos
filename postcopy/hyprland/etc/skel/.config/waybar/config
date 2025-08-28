@@ -10,7 +10,7 @@
     "network",
     "pulseaudio",
     "memory",
-    "cpu",
+    "custom/cpu-cores",
     "backlight",
     "clock",
     "battery"
@@ -114,5 +114,14 @@
     "format-plugged": " {capacity}%",
     "format-alt": "{time} {icon}",
     "format-icons": ["", "", "", "", ""]
+  },
+  "custom/cpu-cores": {
+    "exec": "~/.config/waybar/scripts/cpu-cores.sh",
+    "return-type": "json",
+    "interval": 3,
+    "format": " {}",
+    "tooltip": true,
+    "on-click": "gnome-system-monitor",
+    "on-click-right": "htop"
   }
 }

@@ -65,7 +65,8 @@ window#waybar.hidden {
 #mode,
 #backlight,
 #battery,
-#window {
+#window,
+#custom-cpu-cores {
   margin-top: 6px;
   padding: 0 12px;
   color: #ffffff;
@@ -125,4 +126,32 @@ window#waybar.hidden {
   font-weight: 400;
   background-color: #cbecff;
   color: #000000;
+}
+
+/* Custom CPU cores module styling */
+#custom-cpu-cores {
+  background-color: #fe968b;
+  color: #000000;
+}
+
+#custom-cpu-cores.cpu-normal {
+  background-color: #90ee90;
+  color: #000000;
+}
+
+#custom-cpu-cores.cpu-medium {
+  background-color: #ffd700;
+  color: #000000;
+}
+
+#custom-cpu-cores.cpu-high {
+  background-color: #ff6b6b;
+  color: #ffffff;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
