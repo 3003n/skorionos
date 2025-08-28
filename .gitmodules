@@ -127,9 +127,6 @@
 [submodule "aur-pkgs/vboard"]
 	path = aur-pkgs/vboard
 	url = https://aur.archlinux.org/vboard.git
-[submodule "aur-pkgs/mint-y-icons"]
-	path = aur-pkgs/mint-y-icons
-	url = https://aur.archlinux.org/mint-y-icons.git
 [submodule "aur-pkgs/xviewer"]
 	path = aur-pkgs/xviewer
 	url = https://aur.archlinux.org/xviewer.git
