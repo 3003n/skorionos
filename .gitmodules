@@ -175,9 +175,6 @@
 [submodule "aur-pkgs/ryzen_smu-dkms-git"]
 	path = aur-pkgs/ryzen_smu-dkms-git
 	url = https://aur.archlinux.org/ryzen_smu-dkms-git.git
-[submodule "aur-pkgs/mint-themes"]
-	path = aur-pkgs/mint-themes
-	url = https://aur.archlinux.org/mint-themes.git
 [submodule "aur-pkgs/gamescope-session-steam-sk-git"]
 	path = aur-pkgs/gamescope-session-steam-sk-git
 	url = https://aur.archlinux.org/gamescope-session-steam-sk-git.git
