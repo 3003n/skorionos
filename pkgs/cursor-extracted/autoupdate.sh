@@ -11,7 +11,7 @@ rm latest.json
 
 echo $version $url
 
-sed -r "s@^(_cursor_version=).+@\1${version}@g" -i PKGBUILD
+sed -r "s@^(pkgver=).+@\1${version}@g" -i PKGBUILD
 sed -r "s@^(_cursor_url=).+@\1${url}@g" -i PKGBUILD
 # makepkg --printsrcinfo > .SRCINFO
 # git commit -am "${version}"
