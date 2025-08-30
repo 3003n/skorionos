@@ -266,6 +266,12 @@ all_download() {
 	git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "${zsh_path:?}/ohmyzsh"
 	git clone --depth 1 https://github.com/zdharma-continuum/fast-syntax-highlighting "${zsh_path:?}/ohmyzsh/custom/plugins/fast-syntax-highlighting"
 	cp $zsh_path/ohmyzsh/templates/zshrc.zsh-template $zsh_path/.zshrc
+	# add for kitty ssh
+	cat >>$zsh_path/.zshrc <<-'EOM'
+		[ "$TERM" = "xterm-kitty" ] && alias ssh="kitty +kitten ssh"
+	EOM
+
+	# set zsh theme
 	sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="ys"/g' $zsh_path/.zshrc
 	sed -i 's/plugins=(git)/plugins=(git sudo z fast-syntax-highlighting)/g' $zsh_path/.zshrc
 	cat >>$zsh_path/.zshrc <<-'EOM'
