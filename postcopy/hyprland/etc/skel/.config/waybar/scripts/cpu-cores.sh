@@ -17,6 +17,7 @@ DECIMAL_PLACES=1
 BAR_LENGTH=20
 BAR_FILLED_CHAR="|"
 BAR_EMPTY_CHAR=" "
+TOP_PROCESSES=5
 
 # Check if cache is still valid
 if [[ -f "$CACHE_FILE" ]]; then
@@ -206,7 +207,7 @@ get_cpu_usage() {
     
     # Add top CPU consuming processes
     tooltip+="\n\n<b>Top CPU Processes:</b>"
-    local top_processes=$(ps -eo pid,pcpu,comm --sort=-pcpu --no-headers | head -5)
+    local top_processes=$(ps -eo pid,pcpu,comm --sort=-pcpu --no-headers | head -"$TOP_PROCESSES")
     while IFS= read -r line; do
         if [[ -n "$line" ]]; then
             local pid=$(echo "$line" | awk '{print $1}')

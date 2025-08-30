@@ -118,7 +118,7 @@
   "custom/cpu-cores": {
     "exec": "~/.config/waybar/scripts/cpu-cores.sh",
     "return-type": "json",
-    "interval": 3,
+    "interval": 2,
     "format": " {}",
     "tooltip": true,
     "on-click": "gnome-system-monitor",

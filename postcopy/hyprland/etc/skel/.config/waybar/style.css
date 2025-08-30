@@ -2,7 +2,7 @@
   /* `otf-font-awesome` is required to be installed for icons */
   font-family: FontAwesome, "Fira Mono";
   font-weight: 500;
-  font-size: 18px;
+  font-size: 16px;
 
   border-radius: 10px;
   text-shadow: none;
@@ -145,8 +145,9 @@ window#waybar.hidden {
 }
 
 #custom-cpu-cores.cpu-high {
-  background-color: #ff6b6b;
-  color: #ffffff;
+  background-color: #fe8282;
+  /* color: #ffffff; */
+  color: #000000;
   animation: pulse 2s infinite;
 }
 
