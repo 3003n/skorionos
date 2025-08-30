@@ -54,4 +54,22 @@ export BASE_HYPRLAND_AUR_PACKAGES="\
 
 hyprland_postinstallhook() {
 	echo "password	optional	pam_gnome_keyring.so" >> /etc/pam.d/passwd
+
+	# Handle cursor binary setup
+	if [ -e /usr/bin/cursor ]; then
+		if [ -L /usr/bin/cursor ]; then
+			# /usr/bin/cursor is a symlink, check its target
+			cursor_target=$(readlink /usr/bin/cursor)
+			if [ "$cursor_target" != "/usr/bin/cursor-wrapper" ]; then
+				# Symlink points to something else, preserve the original target
+				ln -sf "$cursor_target" /usr/libexec/cursor
+				ln -sf /usr/bin/cursor-wrapper /usr/bin/cursor
+			fi
+		else
+			# /usr/bin/cursor is a regular file
+			cp /usr/bin/cursor /usr/bin/cursor.orig
+			ln -sf /usr/bin/cursor.orig /usr/libexec/cursor
+			ln -sf /usr/bin/cursor-wrapper /usr/bin/cursor
+		fi
+	fi
 }

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Check if --password-store is already in the arguments
+has_password_store=false
+for arg in "$@"; do
+    if [[ "$arg" == --password-store* ]]; then
+        has_password_store=true
+        break
+    fi
+done
+
+if [ -x "/opt/cursor/usr/share/cursor/cursor" ]; then
+    CURSOR_BIN="/opt/cursor/usr/share/cursor/cursor"
+elif [ -x "/usr/libexec/cursor" ]; then
+    CURSOR_BIN="/usr/libexec/cursor"
+else
+    CURSOR_BIN="$(command -v cursor)"
+fi
+
+# If --password-store is not present, add it with gnome-libsecret
+if [ "$has_password_store" = false ]; then
+    exec "$CURSOR_BIN" --password-store="gnome-libsecret" "$@"
+else
+    exec "$CURSOR_BIN" "$@"
+fi
