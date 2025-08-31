@@ -161,6 +161,7 @@ export AUR_PACKAGES="\
 	ayn-platform-dkms-git \
 	bcm20702a1-firmware \
 	chimeraos-device-quirks-sk \
+	clipboard-sync \
 	downgrade \
 	evdev-keepalive \
 	frzr-sk \
