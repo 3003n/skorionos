@@ -44,6 +44,7 @@ export BASE_HYPRLAND_PACKAGES="\
 	xorg-xhost \
 	xdg-desktop-portal-gtk \
 	xdg-desktop-portal-hyprland \
+	wl-clip-persist \
 	wofi \
 	uwsm \
 "
