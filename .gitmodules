@@ -181,6 +181,3 @@
 [submodule "aur-pkgs/networkd-dispatcher"]
 	path = aur-pkgs/networkd-dispatcher
 	url = https://aur.archlinux.org/networkd-dispatcher.git
-[submodule "aur-pkgs/clipboard-sync"]
-	path = aur-pkgs/clipboard-sync
-	url = https://aur.archlinux.org/clipboard-sync.git
