@@ -4,6 +4,8 @@ export BASE_HYPRLAND_PACKAGES="\
 	brightnessctl \
 	cliphist \
 	dconf-editor \
+	eog \
+	eog-plugins \
 	fcitx5-im \
 	fcitx5-chinese-addons \
 	falkon \
