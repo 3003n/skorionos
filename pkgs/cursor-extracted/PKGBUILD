@@ -1,5 +1,5 @@
 pkgname=cursor-extracted
-pkgver=1.5.7
+pkgver=1.5.9
 pkgrel=1
 pkgdesc='Cursor - The AI Code Editor (extracted from Appimage)'
 arch=('x86_64')
@@ -7,8 +7,8 @@ provides=('cursor')
 conflicts=('cursor' 'cursor-bin')
 url='https://www.cursor.com/'
 license=('custom:Proprietary')
-source=('cursor-download.sh')
-sha512sums=('SKIP')
+source=('cursor-download.sh' 'cursor.sh')
+sha512sums=('SKIP' 'SKIP')
 options=('!strip' '!debug')
 
 pkgver() {
@@ -37,7 +37,7 @@ package() {
 		xargs -I{} install -D "${srcdir}/squashfs-root/{}" "${pkgdir}/opt/cursor/{}"
 
 	mkdir -p "${pkgdir}/usr/bin"
-	ln -sf "/opt/cursor/usr/share/cursor/cursor" "${pkgdir}/usr/bin/cursor"
+	install -Dm755 "${srcdir}/cursor.sh" "${pkgdir}/usr/bin/cursor"
 
 	find "${srcdir}/squashfs-root/usr/share/icons/hicolor" -type f -name 'cursor.png' |
 		sed "s@^${srcdir}/squashfs-root/@@g" |
