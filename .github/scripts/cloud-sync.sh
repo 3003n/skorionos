@@ -491,7 +491,7 @@ deploy_alist() {
         --name=temp-alist \
         -p 5244:5244 \
         -v /tmp/alist-data:/opt/alist/data \
-        xhofe/alist:v3.41.0 >/dev/null
+        xhofe/alist:v3.45.0 >/dev/null
     
     # 等待启动完成
     log_info "等待Alist启动..."
