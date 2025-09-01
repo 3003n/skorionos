@@ -1,0 +1,72 @@
+[Added Associations]
+# Archives
+application/zip=thunar.desktop;
+application/x-tar=thunar.desktop;
+application/x-rar=thunar.desktop;
+
+# Images
+image/png=org.gnome.eog.desktop;
+image/jpeg=org.gnome.eog.desktop;
+image/jpg=org.gnome.eog.desktop;
+image/gif=org.gnome.eog.desktop;
+image/bmp=org.gnome.eog.desktop;
+image/webp=org.gnome.eog.desktop;
+image/svg+xml=org.gnome.eog.desktop;
+
+# PDF and Documents
+application/pdf=dev-microsoft-edge.desktop;
+application/postscript=dev-microsoft-edge.desktop;
+text/plain=code.desktop;
+text/x-log=code.desktop;
+
+# Web
+x-scheme-handler/http=dev-microsoft-edge.desktop;com.microsoft.Edge.desktop;
+x-scheme-handler/https=dev-microsoft-edge.desktop;com.microsoft.Edge.desktop;
+
+# Video
+video/mp4=mpv.desktop;
+video/x-msvideo=mpv.desktop;
+video/quicktime=mpv.desktop;
+
+# Audio
+audio/mpeg=mpv.desktop;
+audio/x-wav=mpv.desktop;
+audio/ogg=mpv.desktop;
+
+[Default Applications]
+# File Manager - 目录
+inode/directory=thunar.desktop
+
+# Archives - 压缩文件
+application/zip=thunar.desktop
+application/x-tar=thunar.desktop
+application/x-rar=thunar.desktop
+
+# Images - 图片文件
+image/png=org.gnome.eog.desktop
+image/jpeg=org.gnome.eog.desktop
+image/jpg=org.gnome.eog.desktop
+image/gif=org.gnome.eog.desktop
+image/bmp=org.gnome.eog.desktop
+image/webp=org.gnome.eog.desktop
+image/svg+xml=org.gnome.eog.desktop
+
+# PDF and Documents - PDF和文档
+application/pdf=dev-microsoft-edge.desktop
+application/postscript=dev-microsoft-edge.desktop
+text/plain=code.desktop
+text/x-log=code.desktop
+
+# Web - 网页
+x-scheme-handler/http=dev-microsoft-edge.desktop
+x-scheme-handler/https=dev-microsoft-edge.desktop
+
+# Video - 视频
+video/mp4=mpv.desktop
+video/x-msvideo=mpv.desktop
+video/quicktime=mpv.desktop
+
+# Audio - 音频
+audio/mpeg=mpv.desktop
+audio/x-wav=mpv.desktop
+audio/ogg=mpv.desktop
