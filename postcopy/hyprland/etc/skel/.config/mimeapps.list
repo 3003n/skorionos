@@ -14,14 +14,14 @@ image/webp=org.gnome.eog.desktop;
 image/svg+xml=org.gnome.eog.desktop;
 
 # PDF and Documents
-application/pdf=dev-microsoft-edge.desktop;
-application/postscript=dev-microsoft-edge.desktop;
+application/pdf=falkon.desktop;
+application/postscript=falkon.desktop;
 text/plain=code.desktop;
 text/x-log=code.desktop;
 
 # Web
-x-scheme-handler/http=dev-microsoft-edge.desktop;com.microsoft.Edge.desktop;
-x-scheme-handler/https=dev-microsoft-edge.desktop;com.microsoft.Edge.desktop;
+x-scheme-handler/http=com.microsoft.Edge.desktop;
+x-scheme-handler/https=com.microsoft.Edge.desktop;
 
 # Video
 video/mp4=mpv.desktop;
@@ -52,14 +52,14 @@ image/webp=org.gnome.eog.desktop
 image/svg+xml=org.gnome.eog.desktop
 
 # PDF and Documents - PDF和文档
-application/pdf=dev-microsoft-edge.desktop
-application/postscript=dev-microsoft-edge.desktop
+application/pdf=falkon.desktop
+application/postscript=falkon.desktop
 text/plain=code.desktop
 text/x-log=code.desktop
 
 # Web - 网页
-x-scheme-handler/http=dev-microsoft-edge.desktop
-x-scheme-handler/https=dev-microsoft-edge.desktop
+x-scheme-handler/http=com.microsoft.Edge.desktop
+x-scheme-handler/https=com.microsoft.Edge.desktop
 
 # Video - 视频
 video/mp4=mpv.desktop
