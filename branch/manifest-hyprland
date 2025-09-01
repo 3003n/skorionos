@@ -25,7 +25,6 @@ export SUB_LOCAL_PACKAGES="\
 "
 
 export SUB_PACKAGES_TO_DELETE="\
-	gnome-desktop \
 	mutter \
 "
 
