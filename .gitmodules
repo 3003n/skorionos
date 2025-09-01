@@ -145,9 +145,6 @@
 [submodule "aur-pkgs/sx"]
 	path = aur-pkgs/sx
 	url = https://aur.archlinux.org/sx.git
-[submodule "aur-pkgs/protonup-qt"]
-	path = aur-pkgs/protonup-qt
-	url = https://aur.archlinux.org/protonup-qt.git
 [submodule "aur-pkgs/chimeraos-device-quirks-sk"]
 	path = aur-pkgs/chimeraos-device-quirks-sk
 	url = https://aur.archlinux.org/chimeraos-device-quirks-sk.git

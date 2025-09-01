@@ -92,7 +92,6 @@ export BASE_AUR_PACKAGES="\
 export EXTRA_AUR_PACKAGES="\
 	flatseal \
 	moonlight-qt-axi \
-	protonup-qt \
 	protontricks \
 	tsukimi-bin \
 "
