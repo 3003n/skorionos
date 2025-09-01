@@ -1,7 +1,7 @@
 From fc34438066e8675d433265c842aab32a659e915a Mon Sep 17 00:00:00 2001
 From: honjow <honjow311@gmail.com>
 Date: Mon, 1 Sep 2025 05:24:10 +0800
-Subject: [PATCH 2/2] fix: prevent X11 clipboard clearing in Hyprland
+Subject: [PATCH 2/3] fix: prevent X11 clipboard clearing in Hyprland
  environment
 
 - Add smart handling to ignore X11 clipboard clear when other clipboards have content

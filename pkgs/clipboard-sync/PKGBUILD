@@ -1,13 +1,14 @@
 # Maintainer: Drew Nutter <dnut@users.noreply.github.com>
 pkgname=clipboard-sync
 _pkgver=0.2.0
-pkgver=0.2.0.fix
+pkgver=0.2.1
 pkgrel=1
 pkgdesc='Synchronizes the clipboard across multiple X11 and wayland instances running on the same machine.'
 url='https://github.com/dnut/clipboard-sync'
 source=("git+https://github.com/dnut/clipboard-sync#tag=$_pkgver"
         "0001-update-dependencies.patch"
         "0002-fix-prevent-X11-clipboard-clearing-in-Hyprland-envir.patch"
+        "0003-fix-prevent-clipboard-content-loss-during-runtime.patch"
         )
 arch=('i686' 'pentium4' 'x86_64' 'arm' 'armv7h' 'armv6h' 'aarch64')
 license=('GPL3')
@@ -15,8 +16,9 @@ makedepends=('git' 'rust')
 depends=('libxcb')
 optdepends=()
 sha256sums=('b0a437cd13bba2db5e1ffcedc3faffde715a41307bbcabdcb5f9a78e5d16c989'
-            '1a9e6c5306516fd54b573301d9153de5325d8c73c60b125f1818c4010e35228c'
-            'aa0cb0d30e376c9ec63c6f269d013e4a99bab00d62abb8be6f5a141b8e30c8e2')
+            '4ff46b6d750ef582a69433a9d74e7e740af984f88e3be257112533a56226e32f'
+            '0932a69a492c98589a4d4fcc401e3207ad80150d86cce974c773878ac198412d'
+            'e79907458776d09d893135f00499fbec1e808afc38ff762be3f091d01ea4e641')
 
 prepare() {
     cd "$srcdir/$pkgname"
