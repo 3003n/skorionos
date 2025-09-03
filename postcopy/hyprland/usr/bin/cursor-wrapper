@@ -9,10 +9,10 @@ for arg in "$@"; do
     fi
 done
 
-if [ -x "/opt/cursor/usr/share/cursor/cursor" ]; then
-    CURSOR_BIN="/opt/cursor/usr/share/cursor/cursor"
-elif [ -x "/usr/libexec/cursor" ]; then
+if [ -x "/usr/libexec/cursor" ]; then
     CURSOR_BIN="/usr/libexec/cursor"
+elif [ -x "/opt/cursor/usr/share/cursor/cursor" ]; then
+    CURSOR_BIN="/opt/cursor/usr/share/cursor/cursor"
 else
     CURSOR_BIN="$(command -v cursor)"
 fi
