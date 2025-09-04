@@ -181,3 +181,6 @@
 [submodule "aur-pkgs/protonplus"]
 	path = aur-pkgs/protonplus
 	url = https://aur.archlinux.org/protonplus.git
+[submodule "aur-pkgs/hhd"]
+	path = aur-pkgs/hhd
+	url = https://aur.archlinux.org/hhd.git

@@ -170,6 +170,7 @@ export AUR_PACKAGES="\
 	gamescope-sk \
 	gpd-fan-driver-dkms-git \
 	gpdconfig-git \
+	hhd \
 	hhd-ui \
 	hhfc-git \
 	hid-msi-claw-dkms-git \
