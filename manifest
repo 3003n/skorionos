@@ -294,8 +294,8 @@ postinstallhook() {
 	# clean up desktop shortcuts
 	sed -i -e 's/Name=Steam (Runtime)/Name=Steam/' /usr/share/applications/steam.desktop
 
-	sed -i 's,Exec=/usr/bin/steam-runtime,Exec=/usr/bin/chimera-steam,' /usr/share/applications/steam.desktop
-	sed -i 's,Exec=/usr/bin/steam,Exec=/usr/bin/chimera-steam,' /usr/share/applications/steam.desktop
+	sed -i 's,Exec=/usr/bin/steam-runtime,Exec=/usr/bin/skorion-steam,' /usr/share/applications/steam.desktop
+	sed -i 's,Exec=/usr/bin/steam,Exec=/usr/bin/skorion-steam,' /usr/share/applications/steam.desktop
 
 	# Waydroid
 	cp /usr/share/applications/Waydroid.desktop /usr/share/applications/Waydroid-Native.desktop
