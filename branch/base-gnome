@@ -3,6 +3,7 @@
 export BASE_GNOME_PACKAGES="\
 	dconf-editor \
 	epiphany \
+	file-roller \
 	gnome-browser-connector \
 	gnome-console \
 	gnome-control-center \
