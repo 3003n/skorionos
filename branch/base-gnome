@@ -38,3 +38,9 @@ export BASE_GNOME_AUR_PACKAGES="\
 	nautilus-copy-path \
 	nautilus-open-any-terminal \
 "
+
+export BASE_GNOME_LOCAL_PACKAGES="\
+	gnome-shell-extension-hibernate-status-git \
+	gnome-shell-extension-logo-menu \
+	steamdeck-gnome-presets \
+"

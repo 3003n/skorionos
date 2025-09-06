@@ -23,8 +23,7 @@ export SUB_AUR_PACKAGES="\
 
 export SUB_LOCAL_PACKAGES="\
 	$BASE_LOCAL_PACKAGES \
-	gnome-shell-extension-hibernate-status-git \
-	gnome-shell-extension-logo-menu \
+	$BASE_GNOME_LOCAL_PACKAGES \
 "
 
 export SUB_PACKAGES_TO_DELETE="\
