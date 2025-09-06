@@ -35,4 +35,5 @@ export BASE_GNOME_AUR_PACKAGES="\
 	gnome-shell-extension-dash-to-dock \
 	gnome-shell-extension-enhanced-osk-git \
 	gnome-shell-extension-screen-autorotate \
+	nautilus-open-any-terminal \
 "

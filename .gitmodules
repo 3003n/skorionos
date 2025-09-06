@@ -184,3 +184,6 @@
 [submodule "aur-pkgs/hhd"]
 	path = aur-pkgs/hhd
 	url = https://aur.archlinux.org/hhd.git
+[submodule "aur-pkgs/nautilus-open-any-terminal"]
+	path = aur-pkgs/nautilus-open-any-terminal
+	url = https://aur.archlinux.org/nautilus-open-any-terminal.git
