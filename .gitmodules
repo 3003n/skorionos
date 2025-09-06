@@ -187,3 +187,6 @@
 [submodule "aur-pkgs/nautilus-open-any-terminal"]
 	path = aur-pkgs/nautilus-open-any-terminal
 	url = https://aur.archlinux.org/nautilus-open-any-terminal.git
+[submodule "aur-pkgs/nautilus-copy-path"]
+	path = aur-pkgs/nautilus-copy-path
+	url = https://aur.archlinux.org/nautilus-copy-path.git
