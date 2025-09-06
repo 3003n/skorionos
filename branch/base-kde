@@ -47,3 +47,7 @@ export BASE_KDE_PACKAGES="\
 export BASE_KDE_AUR_PACKAGES="\
 	plasma6-themes-vapor-steamos \
 "
+
+export BASE_KDE_LOCAL_PACKAGES="\
+	steamdeck-kde-presets-simple \
+"
