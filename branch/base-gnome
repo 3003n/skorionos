@@ -22,6 +22,7 @@ export BASE_GNOME_PACKAGES="\
 	gnome-menus \
 	loupe \
 	nautilus \
+	nautilus-python \
 	noto-fonts-cjk \
 	papirus-icon-theme \
 	xdg-desktop-portal-gnome \
