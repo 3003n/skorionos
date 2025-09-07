@@ -144,7 +144,7 @@ Subsystem	sftp	/usr/lib/ssh/sftp-server
 " > /etc/ssh/sshd_config
 
 echo "
-LABEL=frzr_efi  /boot      vfat      defaults,rw,nofail		0	0
+LABEL=frzr_efi  /boot      vfat      defaults,rw,noatime,nodiratime,nofail		0	2
 LABEL=frzr_root /var       btrfs     defaults,subvol=var,rw,noatime,nodatacow,nofail		0	0
 LABEL=frzr_root /home      btrfs     defaults,subvol=home,rw,noatime,nodatacow,nofail		0	0
 LABEL=frzr_root /frzr_root btrfs     defaults,subvol=/,rw,noatime,nodatacow,x-initrd.mount	0	2
