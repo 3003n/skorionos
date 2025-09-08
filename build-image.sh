@@ -147,6 +147,7 @@ fi
 rm ${BUILD_PATH}/all-install.sh
 rm ${BUILD_PATH}/postinstall
 rm ${BUILD_PATH}/sub-manifest
+rm ${BUILD_PATH}/base-*
 
 #defrag the image
 btrfs filesystem defragment -r ${BUILD_PATH}
