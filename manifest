@@ -1,11 +1,11 @@
 #! /bin/bash
 
-export VERSION="52-4"
+export VERSION="52-5"
 export SYSTEM_DESC="SkorionOS"
 export SYSTEM_NAME="skorionos"
 export USERNAME="gamer"
 export SIZE="40000MB"
-export ARCHIVE_DATE="2025/09/06"
+export ARCHIVE_DATE="2025/09/09"
 export WEBSITE="https://github.com/3003n/skorionos"
 export DOCUMENTATION_URL="https://github.com/3003n/skorionos"
 export BUG_REPORT_URL="https://github.com/3003n/skorionos/issues"
@@ -146,8 +146,8 @@ export PACKAGES="\
 "
 
 export PACKAGE_OVERRIDES="\
-	https://github.com/3003n/linux-chimeraos/releases/download/v6.16.4-104/linux-skchos-6.16.4-104-x86_64.pkg.tar.zst \
-	https://github.com/3003n/linux-chimeraos/releases/download/v6.16.4-104/linux-skchos-headers-6.16.4-104-x86_64.pkg.tar.zst \
+	https://github.com/3003n/linux-chimeraos/releases/download/v6.16.4-107/linux-skchos-6.16.4-107-x86_64.pkg.tar.zst \
+	https://github.com/3003n/linux-chimeraos/releases/download/v6.16.4-107/linux-skchos-headers-6.16.4-107-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libibus/libibus-1.5.30-3-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/i/ibus/ibus-1.5.30-3-x86_64.pkg.tar.zst \
 	https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/ibus-pinyin-1.5.1-2.2-x86_64.pkg.tar.zst \
