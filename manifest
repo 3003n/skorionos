@@ -63,6 +63,7 @@ export PACKAGES="\
 	fuse2 \
 	fwupd \
 	git \
+	git-lfs \
 	gst-plugin-pipewire \
 	gvfs-dnssd \
 	gvfs-smb \
