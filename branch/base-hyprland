@@ -6,9 +6,10 @@ export BASE_HYPRLAND_PACKAGES="\
 	dconf-editor \
 	eog \
 	eog-plugins \
+	falkon \
 	fcitx5-im \
 	fcitx5-chinese-addons \
-	falkon \
+	file-roller \
 	gnome-calculator \
 	gnome-software \
 	gnome-keyring \
