@@ -42,6 +42,7 @@ export PACKAGES="\
 	amd-ucode \
 	bash-completion \
 	broadcom-wl-dkms \
+	btop \
 	bzip2 \
 	cifs-utils \
 	cpupower \
