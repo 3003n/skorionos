@@ -9,3 +9,5 @@ rootfs/etc/makepkg.conf
 .history
 
 test_*.sh
+
+pre-download

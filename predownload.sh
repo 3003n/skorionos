@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 source ./manifest
 
@@ -204,7 +203,7 @@ all_download() {
 	# aarron-lee/DeckyPlumber
 	download_decky_plugin "aarron-lee/DeckyPlumber" $decky_plugin_path
 
-	# honjow/decky-terminal/
+	# honjow/decky-terminal
 	download_decky_plugin "honjow/decky-terminal" $decky_plugin_path
 
 	# honjow/CheatDeck
@@ -216,8 +215,8 @@ all_download() {
 	# xXJSONDeruloXx/Decky-Framegen
 	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip"
 
-	# xXJSONDeruloXx/decky-lossless-scaling-vk
-	download_decky_plugin "xXJSONDeruloXx/decky-lossless-scaling-vk" $decky_plugin_path ".zip"
+	# xXJSONDeruloXx/decky-lsfg-vk
+	download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip"
 
 	# honjow/decky-wine-cellar
 	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path "wine-cellar.zip"
@@ -320,4 +319,11 @@ all_download() {
 }
 
 
-all_download
+main() {
+    all_download
+}
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+	set -x
+    main "$@"
+fi
