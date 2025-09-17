@@ -268,7 +268,7 @@ get_release_info() {
     # 检查GitHub仓库环境变量
     if [ -z "$GITHUB_REPOSITORY" ]; then
         log_warning "GITHUB_REPOSITORY环境变量未设置，使用默认值"
-        export GITHUB_REPOSITORY="3003n/skorionos"
+        export GITHUB_REPOSITORY="SkorionOS/skorionos"
     fi
     
     log_info "获取release信息..."

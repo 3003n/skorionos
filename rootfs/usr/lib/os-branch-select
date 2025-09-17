@@ -3,7 +3,7 @@ set -e
 
 BRANCH_PATH="/frzr_root/source"
 BRANCH_CONF="/frzr_root/os-branch.conf"
-REPO="3003n/skorionos"
+REPO="SkorionOS/skorionos"
 OTHER_SOURCE=""
 
 LOCAL_LANG_FILE="/etc/locale.conf"

@@ -5,7 +5,7 @@
 <policyconfig>
 
   <vendor>SkorionOS</vendor>
-  <vendor_url>https://github.com/3003n/skorionos</vendor_url>
+  <vendor_url>https://github.com/SkorionOS/skorionos</vendor_url>
 
   <action id="org.skorionos.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-priv-write">
     <description>Helper to write to a set of device nodes</description>
@@ -19,4 +19,3 @@
   </action>
 
 </policyconfig>
-
