@@ -193,7 +193,7 @@ all_download() {
 	# download_decky_plugin "YukiCoco/ToMoon" $decky_plugin_path "tomoon.*\.zip"
 
 	# chenx-dust/DeckyClash
-	download_decky_plugin "chenx-dust/DeckyClash" $decky_plugin_path "DeckyClash-full.zip"
+	# download_decky_plugin "chenx-dust/DeckyClash" $decky_plugin_path "DeckyClash-full.zip"
 
 	# GPD-WinControl
 	download_decky_plugin "honjow/GPD-WinControl" $decky_plugin_path
@@ -216,8 +216,8 @@ all_download() {
 	# xXJSONDeruloXx/Decky-Framegen
 	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip"
 
-	# xXJSONDeruloXx/decky-lossless-scaling-vk/releases
-	download_decky_plugin "xXJSONDeruloXx/decky-lossless-scaling-vk" $decky_plugin_path "Lossless.Scaling.zip"
+	# xXJSONDeruloXx/decky-lossless-scaling-vk
+	download_decky_plugin "xXJSONDeruloXx/decky-lossless-scaling-vk" $decky_plugin_path ".zip"
 
 	# honjow/decky-wine-cellar
 	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path "wine-cellar.zip"
