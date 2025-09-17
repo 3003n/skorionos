@@ -192,7 +192,7 @@ all_download() {
 	# download_decky_plugin "YukiCoco/ToMoon" $decky_plugin_path "tomoon.*\.zip"
 
 	# chenx-dust/DeckyClash
-	# download_decky_plugin "chenx-dust/DeckyClash" $decky_plugin_path "DeckyClash-full.zip"
+	download_decky_plugin "chenx-dust/DeckyClash" $decky_plugin_path "DeckyClash-full.zip"
 
 	# GPD-WinControl
 	download_decky_plugin "honjow/GPD-WinControl" $decky_plugin_path
