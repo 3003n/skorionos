@@ -65,7 +65,7 @@ function parse_branch_conf() {
     return 1
   fi
 
-  branch_repo=$(sed -n 's/^\(honjow\|3003n\)\/skorionos://p' "$source_file")
+  branch_repo=$(sed -n 's/^\(honjow\|3003n\|SkorionOS\)\/skorionos://p' "$source_file")
   if [[ -z "$branch_repo" ]]; then
     echo >&2 "Error: No branch repo found in $source_file"
     OTHER_SOURCE=$(cat "$source_file")
@@ -284,7 +284,7 @@ case "$1" in
     exit 0
   fi
 
-  real_branch=$(sed -n 's/^\(honjow\|3003n\)\/skorionos://p' "$BRANCH_PATH" 2>/dev/null)
+  real_branch=$(sed -n 's/^\(honjow\|3003n\|SkorionOS\)\/skorionos://p' "$BRANCH_PATH" 2>/dev/null)
   if [[ -z "$BRANCH_FLG" && -z "$DESKTOP" ]]; then
     echo >&2 "Warning: Unrecognized currently selected branch name '$real_branch', updates may not succeed."
     echo "$real_branch"
