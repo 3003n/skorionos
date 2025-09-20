@@ -206,8 +206,8 @@ all_download() {
 	# honjow/decky-terminal
 	download_decky_plugin "honjow/decky-terminal" $decky_plugin_path
 
-	# honjow/CheatDeck
-	download_decky_plugin "honjow/CheatDeck" $decky_plugin_path "CheatDeck.zip"
+	# CheatDeck
+	download_decky_plugin "SheffeyG/CheatDeck" $decky_plugin_path "CheatDeck.zip"
 
 	# aarron-lee/LegionGoRemapper
 	download_decky_plugin "aarron-lee/LegionGoRemapper" $decky_plugin_path
