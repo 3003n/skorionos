@@ -19,6 +19,7 @@ export SUB_PACKAGES="\
 export SUB_AUR_PACKAGES="\
 	$BASE_AUR_PACKAGES \
 	$BASE_HYPRLAND_AUR_PACKAGES \
+	cursor-bin \
 	linuxqq \
 	microsoft-edge-stable-bin \
 	qqmusic-bin \
@@ -26,7 +27,6 @@ export SUB_AUR_PACKAGES="\
 
 export SUB_LOCAL_PACKAGES="\
 	$BASE_LOCAL_PACKAGES \
-	cursor-extracted \
 "
 
 export SUB_PACKAGES_TO_DELETE="\

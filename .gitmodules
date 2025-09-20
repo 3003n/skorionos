@@ -190,3 +190,6 @@
 [submodule "aur-pkgs/nautilus-copy-path"]
 	path = aur-pkgs/nautilus-copy-path
 	url = https://aur.archlinux.org/nautilus-copy-path.git
+[submodule "aur-pkgs/cursor-bin"]
+	path = aur-pkgs/cursor-bin
+	url = https://aur.archlinux.org/cursor-bin.git
