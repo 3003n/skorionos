@@ -4,7 +4,7 @@
 
 pkgname=steamos-manager
 # _srctag=v25.4.1.sk3
-pkgver=25.7.0.r48.ge63f8a5
+pkgver=25.7.0.r58.g6929440
 pkgrel=1
 pkgdesc='SteamOS Manager daemon for running various system management tasks'
 arch=('x86_64')
@@ -21,7 +21,7 @@ makedepends=('git' 'cargo' 'clang')
 source=("$pkgname::git+https://github.com/honjow/$pkgname.git#branch=dev"
         'support-gamescope-session-steam.patch')
 sha256sums=('SKIP'
-            'd974e606cd74cbacdb8b4d11063dc58a8161d05f549ce637e3e7f80570a31bbc')
+            '3e64dc9d0dedc24d97c3c5583c11751ab7b01e37ab5fc38e2261bcb008fbea1f')
 replaces=('ds-inhibit')
 
 pkgver() {
