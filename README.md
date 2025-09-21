@@ -1,5 +1,5 @@
 # SkorionOS
-[![](https://img.shields.io/github/downloads/SkorionOS/ChimeraOS/total.svg)](https://gitHub.com/SkorionOS/ChimeraOS/releases) [![](https://img.shields.io/github/downloads/SkorionOS/ChimeraOS/latest/total)](https://github.com/SkorionOS/ChimeraOS/releases/latest) [![](https://img.shields.io/github/v/release/SkorionOS/ChimeraOS)](https://github.com/SkorionOS/ChimeraOS/releases/latest)
+[![](https://img.shields.io/github/downloads/SkorionOS/skorionos/total.svg)](https://gitHub.com/SkorionOS/skorionos/releases) [![](https://img.shields.io/github/downloads/SkorionOS/skorionos/latest/total)](https://github.com/SkorionOS/skorionos/releases/latest) [![](https://img.shields.io/github/v/release/SkorionOS/skorionos)](https://github.com/SkorionOS/skorionos/releases/latest)
 
 Bringing the console experience to pc./ 将游戏主机体验带到 PC。
 

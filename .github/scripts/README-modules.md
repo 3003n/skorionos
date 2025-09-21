@@ -56,13 +56,13 @@ options='{"batch_mode":true,"download_threads":3,"language":"zh","use_emoji":tru
 
 ### 3. `mobile-cloud-sync-v2.sh` - 模块化主脚本
 
-**功能：** ChimeraOS 特定的同步逻辑，负责 GitHub Release 获取和调用下载模块
+**功能：** SkorionOS 特定的同步逻辑，负责 GitHub Release 获取和调用下载模块
 
 **特性：**
 - 保持与原脚本相同的接口和配置方式
 - GitHub Release 获取和文件过滤
 - 调用 `alist-downloader.sh` 执行下载
-- ChimeraOS 特定的配置和路径
+- SkorionOS 特定的配置和路径
 
 ## 使用方式
 
