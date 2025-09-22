@@ -79,9 +79,6 @@
 [submodule "aur-pkgs/evdev-keepalive"]
 	path = aur-pkgs/evdev-keepalive
 	url = https://aur.archlinux.org/evdev-keepalive.git
-[submodule "aur-pkgs/gnome-shell-extension-blur-my-shell"]
-	path = aur-pkgs/gnome-shell-extension-blur-my-shell
-	url = https://aur.archlinux.org/gnome-shell-extension-blur-my-shell.git
 [submodule "aur-pkgs/lib32-extest"]
 	path = aur-pkgs/lib32-extest
 	url = https://aur.archlinux.org/lib32-extest.git

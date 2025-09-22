@@ -32,7 +32,6 @@ export BASE_GNOME_PACKAGES="\
 
 export BASE_GNOME_AUR_PACKAGES="\
 	gnome-shell-extension-bluetooth-battery-meter-git \
-	gnome-shell-extension-blur-my-shell \
 	gnome-shell-extension-dash-to-dock \
 	gnome-shell-extension-enhanced-osk-git \
 	gnome-shell-extension-screen-autorotate \
@@ -41,6 +40,7 @@ export BASE_GNOME_AUR_PACKAGES="\
 "
 
 export BASE_GNOME_LOCAL_PACKAGES="\
+	gnome-shell-extension-blur-my-shell \
 	gnome-shell-extension-hibernate-status-git \
 	gnome-shell-extension-logo-menu \
 	steamdeck-gnome-presets \
