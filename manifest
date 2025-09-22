@@ -1,11 +1,11 @@
 #! /bin/bash
 
-export VERSION="52-6"
+export VERSION="52-7"
 export SYSTEM_DESC="SkorionOS"
 export SYSTEM_NAME="skorionos"
 export USERNAME="gamer"
 export SIZE="40000MB"
-export ARCHIVE_DATE="2025/09/16"
+export ARCHIVE_DATE="2025/09/21"
 export WEBSITE="https://github.com/SkorionOS/skorionos"
 export DOCUMENTATION_URL="https://github.com/SkorionOS/skorionos"
 export BUG_REPORT_URL="https://github.com/SkorionOS/skorionos/issues"
