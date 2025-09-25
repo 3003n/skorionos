@@ -2,7 +2,7 @@
 button-layout='appmenu:minimize,maximize,close'
 
 [org/gnome/shell] 
-favorite-apps=['org.gnome.Epiphany.desktop','org.gnome.Nautilus.desktop','org.gnome.Software.desktop','skorionos-session-return.desktop','steam.desktop']
+favorite-apps=['org.gnome.Epiphany.desktop','vboard.desktop','org.gnome.Nautilus.desktop','org.gnome.Software.desktop','skorionos-session-return.desktop','steam.desktop']
 
 [org/gnome/desktop/app-folders]
 folder-children=['Games','Utilities','Containers','Waydroid','Wine','YaST','Pardus','System','Other','Development','Office','Network']
