@@ -13,6 +13,7 @@ export POSTCOPY="\
 export SUB_PACKAGES="\
 	$BASE_PACKAGES \
 	$BASE_KDE_PACKAGES \
+	npm \
 "
 
 export SUB_AUR_PACKAGES="\
