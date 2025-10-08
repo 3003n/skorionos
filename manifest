@@ -148,8 +148,8 @@ export PACKAGES="\
 "
 
 export PACKAGE_OVERRIDES="\
-	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.1-5/linux-skchos-6.17.1-5-x86_64.pkg.tar.zst \
-	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.1-5/linux-skchos-headers-6.17.1-5-x86_64.pkg.tar.zst \
+	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.1-6/linux-skchos-6.17.1-6-x86_64.pkg.tar.zst \
+	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.1-6/linux-skchos-headers-6.17.1-6-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libibus/libibus-1.5.30-3-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/i/ibus/ibus-1.5.30-3-x86_64.pkg.tar.zst \
 	https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/ibus-pinyin-1.5.1-2.2-x86_64.pkg.tar.zst \
