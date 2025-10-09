@@ -38,9 +38,10 @@ function download_file() {
 }
 
 function download_decky_plugin() {
-	local git_api_url="https://api.github.com/repos/$1/releases/latest"
+	local repo=$1
 	local decky_plugin_path=$2
 	local grep_expression=${3:-".tar.gz"}
+	local include_prerelease=${4:-false}
 
 	local temp_decky
 	temp_decky=$(mktemp -d)
@@ -55,6 +56,15 @@ function download_decky_plugin() {
 	local base_delay=2
 	local download_url=""
 
+	# Select API endpoint based on prerelease parameter
+	if [ "$include_prerelease" = "true" ]; then
+		local git_api_url="https://api.github.com/repos/$repo/releases"
+		echo "Fetching latest release (including prerelease) from $repo..."
+	else
+		local git_api_url="https://api.github.com/repos/$repo/releases/latest"
+		echo "Fetching latest stable release from $repo..."
+	fi
+
 	while [ $retry_count -lt $max_retries ] && [ -z "$download_url" ]; do
 		if [ $retry_count -gt 0 ]; then
 			# 计算指数退避延迟时间，增加随机抖动
@@ -63,11 +73,23 @@ function download_decky_plugin() {
 			sleep $delay
 		fi
 
-		download_url=$(curl -s $git_api_url | grep "browser_download_url" | cut -d '"' -f 4 | grep $grep_expression) || true
+		# Use different jq expressions based on API type
+		if [ "$include_prerelease" = "true" ]; then
+			# Sort by published_at and get the latest release (including prerelease)
+			download_url=$(curl -s "$git_api_url" | \
+				jq -r 'sort_by(.published_at) | reverse | first | .assets[].browser_download_url | select(test("'"$grep_expression"'"))' 2>/dev/null | head -1) || true
+		else
+			# Get from latest stable release
+			download_url=$(curl -s "$git_api_url" | \
+				jq -r '.assets[].browser_download_url | select(test("'"$grep_expression"'"))' 2>/dev/null | head -1) || true
+		fi
+
 		echo "download_url: $download_url"
 
-		if [ -z "$download_url" ]; then
+		# Check if URL was successfully retrieved
+		if [ -z "$download_url" ] || [ "$download_url" = "null" ]; then
 			echo "Failed to get download URL, retry attempt $retry_count/$max_retries"
+			download_url=""
 			retry_count=$((retry_count + 1))
 		fi
 	done
@@ -213,10 +235,10 @@ all_download() {
 	download_decky_plugin "aarron-lee/LegionGoRemapper" $decky_plugin_path
 
 	# xXJSONDeruloXx/Decky-Framegen
-	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip"
+	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip" true
 
 	# xXJSONDeruloXx/decky-lsfg-vk
-	download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip"
+	download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
 
 	# honjow/decky-wine-cellar
 	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path "wine-cellar.zip"
