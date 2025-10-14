@@ -87,10 +87,22 @@ if [[ $EUID != 0 ]]; then
   exit 1
 fi
 
+# Get current autologin user from SDDM config
+current_user=$(grep "^User=" "$CONF_FILE" | cut -d= -f2)
+# Update SDDM configuration
 {
-  echo "[Seat:*]"
-  echo "autologin-session=$session_launcher"
-} > "$CONF_FILE"
+  echo "[Autologin]"
+  echo "Session=$session_launcher"
+  # If no user is found, use default
+  if [[ -z $current_user ]]; then
+    current_user="$USER"
+  fi
+  echo "User=$current_user"
+  echo "Relogin=true"
+  echo
+  echo "[General]"
+  echo "HideUsers=true"
+} >"$CONF_FILE"
 
 systemctl reset-failed sddm
 setsid sh -c 'exec systemctl restart sddm <> /dev/tty2 >&0 2>&1'
