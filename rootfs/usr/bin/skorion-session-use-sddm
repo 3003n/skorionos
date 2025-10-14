@@ -28,3 +28,7 @@ fi
     echo "[General]"
     echo "HideUsers=true"
 } > "$CONF_FILE"
+
+# Enable and restart SDDM
+systemctl enable sddm
+setsid sh -c 'exec systemctl restart sddm <> /dev/tty2 >&0 2>&1'

@@ -92,7 +92,6 @@ export PACKAGES="\
 	libidn11 \
 	libxcrypt-compat \
 	libxss \
-	lightdm \
 	linux-firmware \
 	liquidctl \
 	logrotate \
@@ -117,6 +116,7 @@ export PACKAGES="\
 	python \
 	qtractor \
 	rsync \
+	sddm \
 	shfmt \
 	smbclient \
 	sof-firmware \
@@ -234,13 +234,13 @@ export SERVICES="\
 	haveged \
 	hostname-fix \
 	inputplumber \
-	lightdm \
 	networkd-dispatcher \
 	overlay-backgrounds \
 	overlay-fonts \
 	overlay-root-home \
 	powerstation \
 	scx_loader \
+	sddm \
 	steamos-manager \
 	sshd \
 	systemd-timesyncd \

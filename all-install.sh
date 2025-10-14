@@ -124,9 +124,14 @@ echo "${USERNAME}:${USERNAME}" | chpasswd
 # set the default editor, so visudo works
 echo "export EDITOR=/usr/bin/vim" >> /etc/bash.bashrc
 
-echo "[Seat:*]
-autologin-user=${USERNAME}
-" > /etc/lightdm/lightdm.conf.d/00-autologin-user.conf
+echo "[Autologin]
+Session=gamescope-session-steam
+User=${USERNAME}
+Relogin=true
+
+[General]
+HideUsers=true
+" > /etc/sddm.conf.d/10-skorionos-session.conf
 
 echo "${SYSTEM_NAME}" > /etc/hostname
 

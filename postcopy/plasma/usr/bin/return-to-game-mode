@@ -6,7 +6,7 @@ fi
 
 sudo sed -i "s/^NoDisplay=true/#NoDisplay=true/" /usr/share/applications/plasma-wayland.desktop
 # plasma-session-oneshot
-# # sudo skorion-session-use-lightdm gamescope-session-steam
+# # sudo skorion-session-use-sddm gamescope-session-steam
 
 USER=$(id -nu 1000)
 
@@ -16,5 +16,5 @@ if [ "$XDG_SESSION_TYPE" == "wayland" ]; then
   sudo -Eu $USER qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout
   exit
 else
-  sudo skorion-session-use-lightdm gamescope-session-steam
+  sudo skorion-session-use-sddm gamescope-session-steam
 fi

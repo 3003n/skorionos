@@ -1,4 +1,4 @@
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/skorion-session-use-gamescope
-%wheel ALL=(ALL) NOPASSWD: /usr/bin/skorion-session-use-lightdm
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/skorion-session-use-sddm
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/skorion-session-only-update
 %wheel ALL=(ALL) NOPASSWD: /usr/share/skorion/bin/power-tool
