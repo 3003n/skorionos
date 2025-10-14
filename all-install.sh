@@ -130,6 +130,7 @@ User=${USERNAME}
 Relogin=true
 
 [General]
+DisplayServer=wayland
 HideUsers=true
 " > /etc/sddm.conf.d/10-skorionos-session.conf
 

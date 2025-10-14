@@ -16,8 +16,6 @@ SK_CHOS_SESSION=${SK_CHOS_SESSION:-"wayland"}
 
 echo "SK_CHOS_SESSION=$SK_CHOS_SESSION" | sudo systemd-cat -t os-session-select
 
-SESSION_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
-
 SENTINEL_FILE="steamos-session-select"
 RETURN_SESSION_FILE="skorionos-session-return"
 

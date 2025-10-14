@@ -2,7 +2,7 @@
 
 set -e
 
-CONF_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
+CONF_FILE="/etc/sddm.conf.d/zz-skorionos-autologin.conf"
 
 # Check if session name is provided
 if [ -z "$1" ]; then
@@ -10,21 +10,11 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Get current autologin user from SDDM config
-current_user=$(grep "^User=" "$CONF_FILE" | cut -d= -f2)
+session_launcher="$1"
 
-# If no user is found, use default
-if [ -z "$current_user" ]; then
-    current_user="$USER"
-fi
+echo "Updated user selected session to $session_launcher"
 
-# Update SDDM configuration
 {
-    echo "[Autologin]"
-    echo "Session=$1"
-    echo "User=$current_user"
-    echo "Relogin=true"
-    echo
-    echo "[General]"
-    echo "HideUsers=true"
-} > "$CONF_FILE"
+  echo "[Autologin]"
+  echo "Session=$session_launcher"
+} >"$CONF_FILE"

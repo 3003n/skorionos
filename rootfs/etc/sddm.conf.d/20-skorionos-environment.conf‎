@@ -1,3 +1,2 @@
 [Environment]
-LANG=en_US.UTF-8
 XDG_SESSION_TYPE=wayland

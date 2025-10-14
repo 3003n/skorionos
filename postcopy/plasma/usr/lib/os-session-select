@@ -4,7 +4,7 @@ set -e
 
 die() { echo >&2 "!! $*"; exit 1; }
 
-CONF_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
+CONF_FILE="/etc/sddm.conf.d/zz-skorionos-autologin.conf"
 SENTINEL_FILE="steamos-session-select"
 RETURN_SESSION_FILE="skorionos-session-return"
 
@@ -87,21 +87,11 @@ if [[ $EUID != 0 ]]; then
   exit 1
 fi
 
-# Get current autologin user from SDDM config
-current_user=$(grep "^User=" "$CONF_FILE" | cut -d= -f2)
-# Update SDDM configuration
+echo "Updated user selected session to $session_launcher"
+
 {
   echo "[Autologin]"
   echo "Session=$session_launcher"
-  # If no user is found, use default
-  if [[ -z $current_user ]]; then
-    current_user="$USER"
-  fi
-  echo "User=$current_user"
-  echo "Relogin=true"
-  echo
-  echo "[General]"
-  echo "HideUsers=true"
 } >"$CONF_FILE"
 
 systemctl reset-failed sddm

@@ -3,7 +3,7 @@
 DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
 CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 SESSION_CONFIG="${CONFIG_HOME}/environment.d/01-skorion-session.conf"
-SESSION_DM_CONFIG="/etc/sddm.conf.d/10-skorionos-session.conf"
+SESSION_DM_CONFIG="/etc/sddm.conf.d/zz-skorionos-autologin.conf"
 SESSION_LIST=('desktop' 'desktop-xorg' 'steam')
 SELECTED_SESSION="$1"
 

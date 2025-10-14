@@ -3,11 +3,11 @@
 set -e
 
 die() {
-	echo >&2 "!! $*"
-	exit 1
+  echo >&2 "!! $*"
+  exit 1
 }
 
-CONF_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
+CONF_FILE="/etc/sddm.conf.d/zz-skorionos-autologin.conf"
 SENTINEL_FILE="steamos-session-select"
 RETURN_SESSION_FILE="skorionos-session-return"
 
@@ -21,90 +21,80 @@ session_launcher="gamescope-session-steam"
 create_sentinel=""
 
 if [[ "$2" == "--sentinel-created" ]]; then
-	SENTINEL_CREATED=1
-	session_type="wayland"
+  SENTINEL_CREATED=1
+  session_type="wayland"
 fi
 
 # Update config sentinel
 if [[ -z $SENTINEL_CREATED ]]; then
-	[[ $EUID == 0 ]] && die "Running $0 as root is not allowed"
+  [[ $EUID == 0 ]] && die "Running $0 as root is not allowed"
 
-	[[ -n ${HOME+x} ]] || die "No \$HOME variable"
-	config_dir="${XDG_CONF_DIR:-"$HOME/.config"}"
-	session_type=$(
-		cd "$HOME"
-		mkdir -p "$config_dir"
-		cd "$config_dir"
-		if [[ -f "steamos-session-type" ]]; then
-			cp steamos-session-type "$SENTINEL_FILE"
-		else
-			echo "wayland" >"$SENTINEL_FILE"
-		fi
-		cat "$SENTINEL_FILE"
-	)
+  [[ -n ${HOME+x} ]] || die "No \$HOME variable"
+  config_dir="${XDG_CONF_DIR:-"$HOME/.config"}"
+  session_type=$(
+    cd "$HOME"
+    mkdir -p "$config_dir"
+    cd "$config_dir"
+    if [[ -f "steamos-session-type" ]]; then
+      cp steamos-session-type "$SENTINEL_FILE"
+    else
+      echo "wayland" >"$SENTINEL_FILE"
+    fi
+    cat "$SENTINEL_FILE"
+  )
 
-	return_session=$(grep "Session=" $CONF_FILE | cut -d = -f 2)
-	return_session=$(
-		cd "$HOME"
-		mkdir -p "$config_dir"
-		cd "$config_dir"
-		echo "$return_session" >"$RETURN_SESSION_FILE"
-		cat "$RETURN_SESSION_FILE"
-	)
+  return_session=$(grep "Session=" $CONF_FILE | cut -d = -f 2)
+  return_session=$(
+    cd "$HOME"
+    mkdir -p "$config_dir"
+    cd "$config_dir"
+    echo "$return_session" >"$RETURN_SESSION_FILE"
+    cat "$RETURN_SESSION_FILE"
+  )
 
-	# clear steam game desktop shortcut clutter
-	DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
-	grep -r --files-with-matches "Exec=steam steam://rungameid/" "${DATA_HOME}"/applications/ | tr '\n' '\0' | xargs -0 -I {} rm {} || true
+  # clear steam game desktop shortcut clutter
+  DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
+  grep -r --files-with-matches "Exec=steam steam://rungameid/" "${DATA_HOME}"/applications/ | tr '\n' '\0' | xargs -0 -I {} rm {} || true
 
-	# If we were executed as a session user and then re-execute as root below, we don't want to set root's sentinel too
-	export SENTINEL_CREATED=1
+  # If we were executed as a session user and then re-execute as root below, we don't want to set root's sentinel too
+  export SENTINEL_CREATED=1
 fi
 
 # We use "plasma" as "desktop" to hook up to SteamOS's scripts
 case "$session" in
 plasma-wayland-persistent)
-	session_launcher="gnome-session"
-	;;
+  session_launcher="gnome-session"
+  ;;
 plasma-x11-persistent)
-	session_launcher="gnome-session"
-	;;
+  session_launcher="gnome-session"
+  ;;
 desktop | plasma)
-	session_launcher="gnome-session-oneshot"
-	create_sentinel=1
-	;;
+  session_launcher="gnome-session-oneshot"
+  create_sentinel=1
+  ;;
 steam | gamescope-session-steam)
-	session_launcher="gamescope-session-steam"
-	create_sentinel=1
-	;;
+  session_launcher="gamescope-session-steam"
+  create_sentinel=1
+  ;;
 *)
-	echo >&2 "!! Unrecognized session '$session'"
-	exit 1
-	;;
+  echo >&2 "!! Unrecognized session '$session'"
+  exit 1
+  ;;
 esac
 
 echo "Updated user selected session to $session_launcher"
 
 # Become root
 if [[ $EUID != 0 ]]; then
-	exec pkexec "$(realpath $0)" "$session" --sentinel-created
-	exit 1
+  exec pkexec "$(realpath $0)" "$session" --sentinel-created
+  exit 1
 fi
 
-# Get current autologin user from SDDM config
-current_user=$(grep "^User=" "$CONF_FILE" | cut -d= -f2)
-# Update SDDM configuration
+echo "Updated user selected session to $session_launcher"
+
 {
-	echo "[Autologin]"
-	echo "Session=$session_launcher"
-	# If no user is found, use default
-	if [[ -z $current_user ]]; then
-		current_user="$USER"
-	fi
-	echo "User=$current_user"
-	echo "Relogin=true"
-	echo
-	echo "[General]"
-	echo "HideUsers=true"
+  echo "[Autologin]"
+  echo "Session=$session_launcher"
 } >"$CONF_FILE"
 
 systemctl reset-failed sddm
