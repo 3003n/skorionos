@@ -16,7 +16,7 @@ SK_CHOS_SESSION=${SK_CHOS_SESSION:-"wayland"}
 
 echo "SK_CHOS_SESSION=$SK_CHOS_SESSION" | sudo systemd-cat -t os-session-select
 
-SESSION_FILE="/etc/lightdm/lightdm.conf.d/10-skorionos-session.conf"
+SESSION_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
 
 SENTINEL_FILE="steamos-session-select"
 RETURN_SESSION_FILE="skorionos-session-return"
@@ -103,7 +103,7 @@ if CONFIGURED_CHAINED_SESSION=$(check_sentinel); then
   #   return_file="$HOME/.config/${RETURN_SESSION_FILE}"
   #   return_session=$(cat "$return_file")
   #   delay_set_return_session $return_session || true
-  #   sudo skorion-session-use-lightdm plasmax11
+  #   sudo skorion-session-use-sddm plasmax11
   # fi
 
 else

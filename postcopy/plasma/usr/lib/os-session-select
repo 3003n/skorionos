@@ -4,12 +4,12 @@ set -e
 
 die() { echo >&2 "!! $*"; exit 1; }
 
-CONF_FILE="/etc/lightdm/lightdm.conf.d/10-skorionos-session.conf"
+CONF_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
 SENTINEL_FILE="steamos-session-select"
 RETURN_SESSION_FILE="skorionos-session-return"
 
 # For sanity this shipped file must be present, to ensure we're still on a normal-looking Skorionos setup.
-CHECK_FILE="/etc/lightdm/lightdm.conf.d/10-skorionos-session.conf"
+CHECK_FILE="/etc/sddm.conf.d/10-skorionos-session.conf"
 
 session="${1:-gamescope-session-steam}"
 session_type="wayland"
@@ -40,7 +40,7 @@ if [[ -z $SENTINEL_CREATED ]]; then
     cat "$SENTINEL_FILE"
   )
 
-  return_session=$(grep autologin-session $CONF_FILE | cut -d = -f 2)
+  return_session=$(grep "Session=" $CONF_FILE | cut -d = -f 2)
   return_session=$(
     cd "$HOME"
     mkdir -p "$config_dir"
@@ -92,8 +92,7 @@ fi
   echo "autologin-session=$session_launcher"
 } > "$CONF_FILE"
 
-echo "Updated system autologin session to $session_launcher"
-systemctl reset-failed lightdm
-setsid sh -c 'exec systemctl restart lightdm <> /dev/tty6 >&0 2>&1'
-echo "Restarted LightDM"
+systemctl reset-failed sddm
+setsid sh -c 'exec systemctl restart sddm <> /dev/tty2 >&0 2>&1'
+echo "Restarted SDDM"
 

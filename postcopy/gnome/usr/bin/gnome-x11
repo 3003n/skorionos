@@ -1,4 +1,4 @@
 #!/bin/bash
 
 sudo sed -i "s/^#NoDisplay=true/NoDisplay=true/" /usr/share/applications/gnome-x11.desktop
-sudo skorion-session-use-lightdm gnome-xorg
+sudo skorion-session-use-sddm gnome-xorg
