@@ -311,8 +311,10 @@ postinstallhook() {
 	chmod +x /usr/bin/waydroid-choose-gpu
 
 	# scx-scheds
-	sed -i 's/SCX_SCHEDULER=scx_bpfland/SCX_SCHEDULER=scx_lavd/g' /etc/default/scx
-	sed -i "s/#SCX_FLAGS=.*/SCX_FLAGS='--autopower'/g" /etc/default/scx
+	if [ -f /etc/default/scx ]; then
+		sed -i 's/SCX_SCHEDULER=scx_bpfland/SCX_SCHEDULER=scx_lavd/g' /etc/default/scx
+		sed -i "s/#SCX_FLAGS=.*/SCX_FLAGS='--autopower'/g" /etc/default/scx
+	fi
 
 	# if mutter-x11-scaling is installed, add 'x11-randr-fractional-scaling' to experimental-features
 	dconf_conf_path="/etc/dconf/db/local.d/00-sk-global"
