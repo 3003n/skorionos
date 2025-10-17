@@ -16,3 +16,6 @@ show-activities-button=true
 
 [org/gnome/shell/extensions/screen-rotate]
 manual-flip=true
+
+[org/gnome/shell/extensions/ding]
+show-volumes=false

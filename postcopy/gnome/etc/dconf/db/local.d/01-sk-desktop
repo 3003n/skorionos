@@ -5,11 +5,17 @@ button-layout='appmenu:minimize,maximize,close'
 favorite-apps=['org.gnome.Epiphany.desktop','vboard.desktop','org.gnome.Nautilus.desktop','org.gnome.Software.desktop','skorionos-session-return.desktop','steam.desktop']
 
 [org/gnome/desktop/app-folders]
-folder-children=['Games','Utilities','Containers','Waydroid','Wine','YaST','Pardus','System','Other','Development','Office','Network']
+folder-children=['Games','Utilities','Containers','Waydroid','Wine','YaST','Pardus','System','Other','Development','Office','Network','Media']
+
+[org/gnome/desktop/app-folders/folders/Media]
+apps=['mpv.desktop','vlc.desktop','org.rncbc.qtractor.desktop']
+categories=['AudioVideo','media']
+name='AudioVideo.directory'
+translate=true
 
 [org/gnome/desktop/app-folders/folders/Utilities]
-apps=['org.gnome.Console.desktop','org.gnome.tweaks.desktop','ca.desrt.dconf-editor.desktop','yafti.desktop','webapp-manager.desktop','tuned-gui.desktop','fish.desktop','tuned-gui.desktop','yelp.desktop','btop.desktop','com.github.tchx84.Flatseal.desktop','io.github.flattool.Warehouse.desktop','it.mijorus.gearlever.desktop','com.mattjakeman.ExtensionManager.desktop','org.gnome.tweaks.desktop','com.github.GradienceTeam.Gradience','io.github.fastrizwaan.WineZGUI.desktop']
-categories=['X-GNOME-Utilities']
+apps=['org.gnome.Console.desktop','org.gnome.tweaks.desktop','ca.desrt.dconf-editor.desktop','yafti.desktop','webapp-manager.desktop','tuned-gui.desktop','fish.desktop','tuned-gui.desktop','yelp.desktop','btop.desktop','com.github.tchx84.Flatseal.desktop','io.github.flattool.Warehouse.desktop','it.mijorus.gearlever.desktop','com.mattjakeman.ExtensionManager.desktop','org.gnome.tweaks.desktop','com.github.GradienceTeam.Gradience','io.github.fastrizwaan.WineZGUI.desktop','solaar.desktop']
+categories=['X-GNOME-Utilities','Utility']
 name='X-GNOME-Utilities.directory'
 translate=true
 
