@@ -154,7 +154,6 @@ export PACKAGE_OVERRIDES="\
 	https://archive.archlinux.org/packages/l/libxkbcommon/libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon-x11/libxkbcommon-x11-1.11.0-1-x86_64.pkg.tar.zst \
 	https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/ibus-pinyin-1.5.1-2.3-x86_64.pkg.tar.zst \
-	https://archive.archlinux.org/repos/2025/09/16/core/os/x86_64/linux-firmware-mediatek-20250808-1-any.pkg.tar.zst \
 "
 
 # Each entry is the clone url (https://aur.archlinux.org/{AUR_PACKAGE}.git)
