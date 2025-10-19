@@ -333,6 +333,11 @@ all_download() {
 	# UniversalAMDFormBrowser
 	download_file "https://github.com/DavidS95/Smokeless_UMAF/raw/main/UniversalAMDFormBrowser.zip" "$pre_path/UMAF.zip"
 
+	# efi drivers
+	efi_drivers_path=$pre_path/efi-drivers
+	mkdir -p $efi_drivers_path
+	download_file "https://github.com/chenx-dust/UsbXbox360Dxe/releases/download/latest/UsbXbox360Dxe.efi" "$efi_drivers_path/UsbXbox360Dxe.efi"
+
 
 	cd $pre_download_dir
 	# find . -type d -name ".git" -exec rm -rf {} \;
