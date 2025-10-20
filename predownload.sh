@@ -336,7 +336,7 @@ all_download() {
 	# efi drivers
 	efi_drivers_path=$pre_path/efi-drivers
 	mkdir -p $efi_drivers_path
-	download_file "https://github.com/chenx-dust/UsbXbox360Dxe/releases/latest/download/UsbXbox360Dxe.efi" "$efi_drivers_path/UsbXbox360Dxe.efi"
+	download_file "https://github.com/honjow/UsbXbox360Dxe/releases/latest/download/UsbXbox360Dxe.efi" "$efi_drivers_path/UsbXbox360Dxe.efi"
 
 
 	cd $pre_download_dir
