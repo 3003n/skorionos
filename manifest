@@ -258,6 +258,7 @@ export USER_SERVICES="\
 	sk-chos-user-daemon \
 	sk-first-setup-daemon \
 	sk-audio-setup \
+	steamosctl-sleep \
 	monitor-waydroid \
 "
 
