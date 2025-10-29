@@ -161,7 +161,6 @@ export PACKAGE_OVERRIDES="\
 # Check on the AUR webpage if you are unsure
 export AUR_PACKAGES="\
 	aic8800d80-dkms \
-	ayaneo-platform-dkms-git \
 	ayn-platform-dkms-git \
 	bcm20702a1-firmware \
 	bmi260-dkms \
