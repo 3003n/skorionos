@@ -309,6 +309,11 @@ postinstallhook() {
 	curl -Lo /usr/bin/waydroid-choose-gpu https://raw.githubusercontent.com/Quackdoc/waydroid-scripts/main/waydroid-choose-gpu.sh
 	chmod +x /usr/bin/waydroid-choose-gpu
 
+	# Onboard
+	if [ -f /usr/share/applications/onboard.desktop ]; then
+		sed -i 's@Exec=onboard@Exec=env GDK_BACKEND=x11 onboard@g' /usr/share/applications/onboard.desktop
+	fi
+
 	# scx-scheds
 	if [ -f /etc/default/scx ]; then
 		sed -i 's/SCX_SCHEDULER=scx_bpfland/SCX_SCHEDULER=scx_lavd/g' /etc/default/scx
