@@ -89,7 +89,6 @@ export PACKAGES="\
 	lib32-systemd \
 	lib32-vulkan-icd-loader \
 	libcurl-gnutls \
-	libidn11 \
 	libxcrypt-compat \
 	libxss \
 	linux-firmware \
