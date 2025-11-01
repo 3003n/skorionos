@@ -171,7 +171,6 @@ export AUR_PACKAGES="\
 	gamescope-session-steam-sk-git \
 	gamescope-session-steam-plus-git \
 	gamescope-sk \
-	gpd-fan-driver-dkms-git \
 	gpdconfig-git \
 	hhd \
 	hhd-ui \
