@@ -181,7 +181,7 @@ btrfs subvolume snapshot -r ${BUILD_PATH} ${SNAP_PATH}
 # 
 IMG_EXT=".img"
 
-COMPRESS_LEVEL="-9"
+COMPRESS_LEVEL="-6"
 
 SPECIAL_IMG_EXT=".skosys"
 
