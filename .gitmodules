@@ -181,6 +181,3 @@
 [submodule "aur-pkgs/cursor-bin"]
 	path = aur-pkgs/cursor-bin
 	url = https://aur.archlinux.org/cursor-bin.git
-[submodule "aur-pkgs/bmi260-dkms"]
-	path = aur-pkgs/bmi260-dkms
-	url = https://aur.archlinux.org/bmi260-dkms.git
