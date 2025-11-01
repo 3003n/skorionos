@@ -63,7 +63,7 @@ jobs:
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
 
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         env:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         with:
@@ -107,7 +107,7 @@ jobs:
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
 
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         env:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         with:

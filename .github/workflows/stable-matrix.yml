@@ -20,7 +20,7 @@ jobs:
         run: |
           ./predownload.sh
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
             name: pre-download
             if-no-files-found: error
@@ -97,7 +97,7 @@ jobs:
       #     touch aur-pkgs/[${{ env.PACKAGE_NAME }}]-B.pkg.tar.zst
 
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         env:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         with:
@@ -149,7 +149,7 @@ jobs:
       #     touch pkgs/[${{ env.PACKAGE_NAME }}]-B.pkg.tar.zst
 
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         env:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         with:

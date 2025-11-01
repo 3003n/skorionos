@@ -63,7 +63,7 @@ jobs:
           docker run --rm -v $(pwd):/workdir --entrypoint=/bin/bash ${{ steps.meta.outputs.tags }} -c "cd /workdir/aur-pkgs && sha256sum *.pkg.tar* > sha256sums-${PACKAGE_NAME}.txt"
 
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         env:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         with:
@@ -108,7 +108,7 @@ jobs:
           docker run --rm -v $(pwd):/workdir --entrypoint=/bin/bash ${{ steps.meta.outputs.tags }} -c "cd /workdir/pkgs && sha256sum *.pkg.tar* > sha256sums-${PACKAGE_NAME}.txt"
 
       - name: Upload Package Archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         env:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         with:
