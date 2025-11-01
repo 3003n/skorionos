@@ -176,7 +176,6 @@ export AUR_PACKAGES="\
 	hhd \
 	hhd-ui \
 	hhfc-git \
-	hid-msi-claw-dkms-git \
 	inputplumber-bin \
 	kanit-font \
 	linux-firmware-valve \

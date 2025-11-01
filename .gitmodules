@@ -106,9 +106,6 @@
 [submodule "aur-pkgs/v4l-utils-git"]
 	path = aur-pkgs/v4l-utils-git
 	url = https://aur.archlinux.org/v4l-utils-git.git
-[submodule "aur-pkgs/hid-msi-claw-dkms-git"]
-	path = aur-pkgs/hid-msi-claw-dkms-git
-	url = https://aur.archlinux.org/hid-msi-claw-dkms-git.git
 [submodule "aur-pkgs/nbfc-linux"]
 	path = aur-pkgs/nbfc-linux
 	url = https://aur.archlinux.org/nbfc-linux.git
