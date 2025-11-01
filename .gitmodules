@@ -118,9 +118,6 @@
 [submodule "aur-pkgs/plasma6-themes-vapor-steamos"]
 	path = aur-pkgs/plasma6-themes-vapor-steamos
 	url = https://aur.archlinux.org/plasma6-themes-vapor-steamos.git
-[submodule "aur-pkgs/moonlight-qt-axi"]
-	path = aur-pkgs/moonlight-qt-axi
-	url = https://aur.archlinux.org/moonlight-qt-axi.git
 [submodule "aur-pkgs/vboard"]
 	path = aur-pkgs/vboard
 	url = https://aur.archlinux.org/vboard.git
