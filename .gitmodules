@@ -1,6 +1,3 @@
-[submodule "aur-pkgs/ayn-platform-dkms-git"]
-	path = aur-pkgs/ayn-platform-dkms-git
-	url = https://aur.archlinux.org/ayn-platform-dkms-git.git
 [submodule "aur-pkgs/bcm20702a1-firmware"]
 	path = aur-pkgs/bcm20702a1-firmware
 	url = https://aur.archlinux.org/bcm20702a1-firmware.git
