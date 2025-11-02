@@ -1,22 +1,36 @@
-From edf6351fc0a4f8babcbfd61dfdd8d109537e96d9 Mon Sep 17 00:00:00 2001
+From 71c1622cca877c191929704cc64c15b477ed6356 Mon Sep 17 00:00:00 2001
 From: honjow <honjow311@gmail.com>
 Date: Wed, 30 Apr 2025 22:19:34 +0800
-Subject: [PATCH 2/2] Add support for more handheld devices to fan detection
+Subject: [PATCH] Add support for more handheld devices to fan detection
 
 ---
- src/overlay.cpp | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ src/overlay.cpp | 42 ++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 36 insertions(+), 6 deletions(-)
 
 diff --git a/src/overlay.cpp b/src/overlay.cpp
-index 4e0d4d9..5125e4c 100644
+index d96c7a2..9da10a0 100644
 --- a/src/overlay.cpp
 +++ b/src/overlay.cpp
-@@ -868,7 +868,16 @@ void update_fan(){
+@@ -874,25 +874,55 @@ void check_for_vkbasalt_and_gamemode() {
+ 
+ void update_fan(){
+    // This just handles steam deck fan for now
+-   static bool init;
+-   string hwmon_path;
++   static bool init = false;
++   static string hwmon_path;
+ 
+    if (!init){
++      init = true;
+       string path = "/sys/class/hwmon/";
        auto dirs = ls(path.c_str(), "hwmon", LS_DIRS);
        for (auto& dir : dirs) {
           string full_path = (path + dir + "/name").c_str();
 -         if (read_line(full_path).find("steamdeck_hwmon") != string::npos){
 +         string name = read_line(full_path);
++         // Skip fan curve devices as they don't provide actual fan speed
++         if (name.find("curve") != string::npos)
++            continue;
 +         if (name.find("steamdeck_hwmon") != string::npos ||
 +             name.find("asus") != string::npos ||
 +             name.find("aynec") != string::npos ||
@@ -24,11 +38,41 @@ index 4e0d4d9..5125e4c 100644
 +             name.find("msi_ec") != string::npos ||
 +             name.find("msi-ec") != string::npos ||
 +             name.find("msi_wmi_platform") != string::npos ||
++             name.find("ayaneo") != string::npos ||
 +             name.find("oxp_ec") != string::npos ||
 +             name.find("oxpec") != string::npos){
              hwmon_path = path + dir + "/fan1_input";
++            SPDLOG_DEBUG("Found fan device: {} at {}", name, hwmon_path);
              break;
           }
+       }
+    }
+ 
+-   if (!hwmon_path.empty())
+-      fan_speed = stoi(read_line(hwmon_path));
+-   else
++   if (!hwmon_path.empty()) {
++      string fan_input = read_line(hwmon_path);
++      if (!fan_input.empty()) {
++         try {
++            fan_speed = stoi(fan_input);
++         } catch (const std::invalid_argument& e) {
++            SPDLOG_ERROR("Failed to parse fan speed from '{}': invalid argument", hwmon_path);
++            fan_speed = -1;
++         } catch (const std::out_of_range& e) {
++            SPDLOG_ERROR("Failed to parse fan speed from '{}': out of range", hwmon_path);
++            fan_speed = -1;
++         }
++      } else {
++         SPDLOG_DEBUG("Fan speed file is empty: {}", hwmon_path);
++         fan_speed = -1;
++      }
++   } else {
+       fan_speed = -1;
++   }
+ }
+ 
+ void next_hud_position(){
 -- 
-2.49.0
+2.51.2
 
