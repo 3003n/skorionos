@@ -4,6 +4,7 @@ export BASE_PACKAGES="\
 	aria2 \
 	bat \
 	bluez-utils \
+	btop \
 	cmake \
 	ddcutil \
 	cage \
