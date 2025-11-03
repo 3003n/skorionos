@@ -202,17 +202,20 @@ else
 	btrfs send -f ${IMG_FILENAME} ${SNAP_PATH}
 fi
 
-# 分割文件 1.5G
-split_mb=1536
-split_bytes=$((split_mb * 1024 * 1024))
-file_size=$(stat -c %s ${IMG_FILENAME})
+# 分割文件 GiB
+SPLIT_SIZE_GiB=1.8
 
-if [ ${file_size} -gt ${split_bytes} ]; then
-	total_parts=$(((file_size + split_bytes - 1) / split_bytes))
+# 整数MB
+SPLIT_SIZE_MiB=$(bc <<< "scale=0; ${SPLIT_SIZE_GiB} * 1024" | awk '{printf "%d\n", $1}')
+SPLIT_BYTES=$((SPLIT_SIZE_MiB * 1024 * 1024))
+FILE_SIZE=$(stat -c %s ${IMG_FILENAME})
+
+if [ ${FILE_SIZE} -gt ${SPLIT_BYTES} ]; then
+	total_parts=$(((FILE_SIZE + SPLIT_BYTES - 1) / SPLIT_BYTES))
 	img_ext=${IMG_FILENAME#"${IMG_FILENAME_WITHOUT_EXT}"}
 
 	# 临时分割文件（生成 .part000, .part001, ...）
-	split -b ${split_mb}MiB -d -a 3 ${IMG_FILENAME} ${IMG_FILENAME_WITHOUT_EXT}.part
+	split -b ${SPLIT_SIZE_MiB}MiB -d -a 3 ${IMG_FILENAME} ${IMG_FILENAME_WITHOUT_EXT}.part
 	# 重命名为最终格式（.part1-3.tar.xz）
 	for i in $(seq 1 $total_parts); do
 		part_num=$(printf "%03d" $((i - 1)))
