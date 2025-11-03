@@ -3,6 +3,7 @@
 
 set -e
 set -x
+set -o pipefail
 
 if [ "$EUID" -ne 0 ]; then
 	echo "$(basename "$0") must be run as root"
@@ -203,8 +204,8 @@ fi
 # 分割文件 GiB
 SPLIT_SIZE_GiB=1.8
 
-# 整数MB
-SPLIT_SIZE_MiB=$(bc <<< "scale=0; ${SPLIT_SIZE_GiB} * 1024" | awk '{printf "%d\n", $1}')
+# 整数MB (使用 awk 计算，避免依赖 bc)
+SPLIT_SIZE_MiB=$(awk "BEGIN {printf \"%d\", ${SPLIT_SIZE_GiB} * 1024}")
 SPLIT_BYTES=$((SPLIT_SIZE_MiB * 1024 * 1024))
 FILE_SIZE=$(stat -c %s ${IMG_FILENAME})
 
