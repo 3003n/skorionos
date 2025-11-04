@@ -177,6 +177,7 @@ export AUR_PACKAGES="\
 	networkd-dispatcher \
 	nintendo-udev \
 	pikaur \
+	refind-r \
 	rtl8812au-dkms-git \
 	rtl8814au-dkms-git \
 	rtl8821au-dkms-git \

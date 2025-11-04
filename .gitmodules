@@ -178,3 +178,6 @@
 [submodule "aur-pkgs/cursor-bin"]
 	path = aur-pkgs/cursor-bin
 	url = https://aur.archlinux.org/cursor-bin.git
+[submodule "aur-pkgs/refind-r"]
+	path = aur-pkgs/refind-r
+	url = https://aur.archlinux.org/refind-r.git
