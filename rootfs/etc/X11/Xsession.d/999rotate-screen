@@ -1,6 +1,14 @@
 #!/bin/bash
 INT_DISPLAYS=$(xrandr | awk '/\<connected\>/ {print $1}' | grep eDP)
-source /etc/sk-chos/screen-rotate
+
+if [[ -f "/usr/libexec/screen-rotate" ]]; then
+    source "/usr/libexec/screen-rotate"
+fi
+
+if [ -f /etc/sk-chos/screen-rotate ]; then
+    source /etc/sk-chos/screen-rotate
+fi
+
 
 if [ -z "${X11_ROTATION}" ]; then
     echo "Ignoring anything. Assume normal rotation"
