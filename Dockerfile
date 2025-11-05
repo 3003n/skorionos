@@ -14,6 +14,13 @@ RUN echo -e "keyserver-options auto-key-retrieve" >> /etc/pacman.d/gnupg/gpg.con
     pacman-key --init && \
     pacman --noconfirm -Syyuu
 
+# 安装构建必需工具
+RUN pacman --noconfirm -S \
+    arch-install-scripts \
+    btrfs-progs \
+    sudo \
+    wget
+
 # Auto add PGP keys for users
 RUN mkdir -p /etc/gnupg/ && echo -e "keyserver-options auto-key-retrieve" >> /etc/gnupg/gpg.conf
 
