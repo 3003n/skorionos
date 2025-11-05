@@ -68,6 +68,10 @@ jobs:
             pattern: pre-download
             merge-multiple: true
             path: pre-download/
+      - name: Pre build image
+        run: |
+          env BUILD_BRANCH=${{ matrix.branch }} ./pre-build-image.sh
+    
       
       - name: Build system image
         id: build_image
