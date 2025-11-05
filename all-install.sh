@@ -43,16 +43,10 @@ done
 pacman --noconfirm -U --overwrite '*' /override_pkgs/* --needed
 rm -rf /var/cache/pacman/pkg
 
+FULL_PACKAGES="${PACKAGES} ${SUB_PACKAGES} ${AUR_PACKAGES} ${SUB_AUR_PACKAGES} ${SUB_LOCAL_PACKAGES}"
 
 # install packages
-pacman --noconfirm -S --overwrite '*' \
-    --disable-download-timeout \
-    ${PACKAGES} \
-    ${SUB_PACKAGES} \
-	${AUR_PACKAGES} \
-    ${SUB_AUR_PACKAGES} \
-    ${SUB_LOCAL_PACKAGES} \
-    --needed
+pacman --noconfirm -S --overwrite '*' --disable-download-timeout ${FULL_PACKAGES} --needed
 
 rm -rf /var/cache/pacman/pkg
 
