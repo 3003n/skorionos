@@ -1,0 +1,43 @@
+name: System image matrix pkg build - stable
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+on:
+  push:
+    branches:
+      - pkg
+  workflow_dispatch:
+
+jobs:
+  pre-download:
+    name: Pre download
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pre download
+        run: |
+          ./predownload.sh
+      - name: Upload Package Archives
+        uses: actions/upload-artifact@v5
+        with:
+            name: pre-download
+            if-no-files-found: error
+            path: |
+              pre-download/*.tar.gz
+            compression-level: 0
+            overwrite: true
+
+  build-docker-image:
+    needs:
+      - pre-download
+    name: Build and publish docker container
+    uses: ./.github/workflows/build-builder.yml
+
+  build:
+    needs:
+      - build-docker-image
+    name: Build SkorionOS STABLE image matrix pkg
+    uses: ./.github/workflows/build-system-image-matrix-p.yml
+    secrets: inherit

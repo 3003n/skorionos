@@ -1,4 +1,4 @@
-name: System image matrix build - unstable
+name: System image matrix pkg build - unstable
 
 env:
   REGISTRY: ghcr.io
@@ -123,7 +123,7 @@ jobs:
       - aur-pkgbuild
       - pkgbuild
     name: Build SkorionOS STABLE image matrix
-    uses: ./.github/workflows/build-system-image-matrix.yml
+    uses: ./.github/workflows/build-system-image-matrix-p.yml
     with:
       postfix: "[UNSTABLE]"
     secrets: inherit

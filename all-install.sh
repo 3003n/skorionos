@@ -43,43 +43,17 @@ done
 pacman --noconfirm -U --overwrite '*' /override_pkgs/* --needed
 rm -rf /var/cache/pacman/pkg
 
-for file in ${OWN_PACKAGES_FILE_TO_DELETE}; do
-	rm -f /local_pkgs/${file} || true
-done
-
-# install local packages
-pacman --noconfirm -U --overwrite '*' /local_pkgs/* --needed
-rm -rf /var/cache/pacman/pkg
-
-# delete packages
-for package in ${PACKAGES_TO_DELETE}; do
-    echo "Checking if $package is installed"
-	if [[ $(pacman -Qq $package) == "$package" ]]; then
-		echo "$package is installed, deleting"
-		pacman --noconfirm -Rnsdd $package || true
-	fi
-done
 
 # install packages
-pacman --noconfirm -S --overwrite '*' --disable-download-timeout ${PACKAGES} ${SUB_PACKAGES} --needed
-rm -rf /var/cache/pacman/pkg
+pacman --noconfirm -S --overwrite '*' \
+    --disable-download-timeout \
+    ${PACKAGES} \
+    ${SUB_PACKAGES} \
+	${AUR_PACKAGES} \
+    ${SUB_AUR_PACKAGES} \
+    ${SUB_LOCAL_PACKAGES} \
+    --needed
 
-# delete packages
-for package in ${PACKAGES_TO_DELETE}; do
-    echo "Checking if $package is installed"
-	if [[ $(pacman -Qq $package) == "$package" ]]; then
-		echo "$package is installed, deleting"
-		pacman --noconfirm -Rnsdd $package || true
-	fi
-done
-
-# remove AUR packages
-for file in ${AUR_PACKAGES_FILE_TO_DELETE}; do
-	rm -f /aur_pkgs/${file} || true
-done
-
-# install AUR packages
-pacman --noconfirm -U --overwrite '*' /aur_pkgs/* --needed
 rm -rf /var/cache/pacman/pkg
 
 # delete packages
