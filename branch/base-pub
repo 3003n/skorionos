@@ -38,6 +38,7 @@ export BASE_PACKAGES="\
 	plymouth \
 	podman-compose \
 	podman-docker \
+	python-pyclip \
 	python-pyudev \
 	python-systemd \
 	ripgrep \
@@ -85,7 +86,6 @@ export BASE_AUR_PACKAGES="\
 	nbfc-linux \
 	noto-fonts-cjk-fontconfig \
 	onedrive-abraunegg \
-	python-pyclip \
 	sx \
 	vboard \
 "

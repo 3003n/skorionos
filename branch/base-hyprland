@@ -21,6 +21,7 @@ export BASE_HYPRLAND_PACKAGES="\
 	hyprpaper \
 	hyprpicker \
 	hyprutils \
+	hyprshot \
 	kitty \
 	kvantum \
 	kvantum-qt5 \
@@ -51,7 +52,6 @@ export BASE_HYPRLAND_PACKAGES="\
 "
 
 export BASE_HYPRLAND_AUR_PACKAGES="\
-	hyprshot \
 	tofi \
 	wlogout-git \
 "

@@ -158,7 +158,6 @@ export PACKAGE_OVERRIDES="\
 # Check on the AUR webpage if you are unsure
 export AUR_PACKAGES="\
 	aic8800d80-dkms \
-	bcm20702a1-firmware \
 	chimeraos-device-quirks-sk \
 	downgrade \
 	evdev-keepalive \
@@ -185,7 +184,6 @@ export AUR_PACKAGES="\
 	ryzen_smu-dkms-git \
 	sk-boot-to-windows \
 	sk-chos-tool \
-	steam_notif_daemon \
 	v4l-utils-git \
 	waydroid-script-git \
 	yay-git \

@@ -1,6 +1,3 @@
-[submodule "aur-pkgs/bcm20702a1-firmware"]
-	path = aur-pkgs/bcm20702a1-firmware
-	url = https://aur.archlinux.org/bcm20702a1-firmware.git
 [submodule "aur-pkgs/downgrade"]
 	path = aur-pkgs/downgrade
 	url = https://aur.archlinux.org/downgrade.git
@@ -28,9 +25,6 @@
 [submodule "aur-pkgs/ryzenadj-git"]
 	path = aur-pkgs/ryzenadj-git
 	url = https://aur.archlinux.org/ryzenadj-git.git
-[submodule "aur-pkgs/steam_notif_daemon"]
-	path = aur-pkgs/steam_notif_daemon
-	url = https://aur.archlinux.org/steam_notif_daemon.git
 [submodule "aur-pkgs/zenergy-dkms-git"]
 	path = aur-pkgs/zenergy-dkms-git
 	url = https://aur.archlinux.org/zenergy-dkms-git.git
@@ -43,9 +37,6 @@
 [submodule "aur-pkgs/onedrive-abraunegg"]
 	path = aur-pkgs/onedrive-abraunegg
 	url = https://aur.archlinux.org/onedrive-abraunegg.git
-[submodule "aur-pkgs/python-pyclip"]
-	path = aur-pkgs/python-pyclip
-	url = https://aur.archlinux.org/python-pyclip.git
 [submodule "aur-pkgs/sk-chos-tool"]
 	path = aur-pkgs/sk-chos-tool
 	url = https://aur.archlinux.org/sk-chos-tool.git
@@ -118,9 +109,6 @@
 [submodule "aur-pkgs/ibus-autostart"]
 	path = aur-pkgs/ibus-autostart
 	url = https://aur.archlinux.org/ibus-autostart.git
-[submodule "aur-pkgs/hyprshot"]
-	path = aur-pkgs/hyprshot
-	url = https://aur.archlinux.org/hyprshot.git
 [submodule "aur-pkgs/tofi"]
 	path = aur-pkgs/tofi
 	url = https://aur.archlinux.org/tofi.git
