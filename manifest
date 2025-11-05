@@ -171,7 +171,6 @@ export AUR_PACKAGES="\
 	hhd-ui \
 	hhfc-git \
 	inputplumber-bin \
-	kanit-font \
 	linux-firmware-valve \
 	networkd-dispatcher \
 	nintendo-udev \

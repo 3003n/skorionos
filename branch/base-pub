@@ -106,7 +106,7 @@ export BASE_LOCAL_PACKAGES="\
 	davfs2 \
 	mangohud-git \
 	powerstation-git \
-	rtl88x2bu-dkms \
+	rtl88x2bu-dkms-git \
 	skorionos-fastfetch-logo \
 	steam-launch-manager \
 	steam-removable-media-git \
