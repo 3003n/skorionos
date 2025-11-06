@@ -167,7 +167,7 @@ COMPRESS_METHOD="${COMPRESS_METHOD:-zstd}"
 
 # Set compression level based on method
 if [ "${COMPRESS_METHOD}" = "zstd" ]; then
-    COMPRESS_LEVEL="${COMPRESS_LEVEL:--10}"
+    COMPRESS_LEVEL="${COMPRESS_LEVEL:--15}"
     COMPRESS_EXT="zst"
 else
     COMPRESS_LEVEL="${COMPRESS_LEVEL:--6}"
