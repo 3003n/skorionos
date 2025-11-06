@@ -163,7 +163,7 @@ btrfs subvolume snapshot -r ${BUILD_PATH} ${SNAP_PATH}
 IMG_EXT=".img"
 
 # Compression method: xz or zstd
-COMPRESS_METHOD="${COMPRESS_METHOD:-xz}"
+COMPRESS_METHOD="${COMPRESS_METHOD:-zstd}"
 
 # Set compression level based on method
 if [ "${COMPRESS_METHOD}" = "zstd" ]; then
