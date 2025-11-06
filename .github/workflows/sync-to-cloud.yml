@@ -3,7 +3,11 @@ name: Sync to Cloud
 on:
   # 自动触发：当release创建workflow完成时
   workflow_run:
-    workflows: ["System image matrix build - stable", "System image matrix build - unstable", "Test CI"]
+    workflows: 
+      - System image matrix build - stable
+      - System image matrix build - unstable
+      - System image matrix pkg build - stable
+      - Test CI
     types: [completed]
     
   # 手动触发：支持指定tag参数
