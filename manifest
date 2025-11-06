@@ -124,6 +124,7 @@ export PACKAGES="\
 	tar \
 	tree \
 	ttf-liberation \
+	tuned-ppd \
 	unace \
 	unrar \
 	unzip \

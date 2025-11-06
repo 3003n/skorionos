@@ -32,7 +32,6 @@ export SUB_PACKAGES="\
 	cosmic-wallpapers \
 	fcitx5-im \
 	fcitx5-chinese-addons \
-	power-profiles-daemon \
 	noto-fonts-cjk \
 	xdg-desktop-portal-cosmic \
 	xdg-user-dirs-gtk \
