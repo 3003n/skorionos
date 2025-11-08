@@ -146,8 +146,8 @@ export PACKAGES="\
 "
 
 export PACKAGE_OVERRIDES="\
-	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.7-1/linux-skchos-6.17.7-1-x86_64.pkg.tar.zst \
-	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.7-1/linux-skchos-headers-6.17.7-1-x86_64.pkg.tar.zst \
+	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.7-2/linux-skchos-6.17.7-2-x86_64.pkg.tar.zst \
+	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.7-2/linux-skchos-headers-6.17.7-2-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/lib32-libxkbcommon/lib32-libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon/libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon-x11/libxkbcommon-x11-1.11.0-1-x86_64.pkg.tar.zst \
