@@ -13,7 +13,9 @@ on:
 jobs:
   notify-sk-api-info:
     runs-on: ubuntu-latest
-    if: github.repository == 'SkorionOS/skorionos'
+    if: |
+      github.repository == 'SkorionOS/skorionos' &&
+      github.event.workflow_run.conclusion == 'success'
     
     steps:
       # - name: Wait for all assets upload completion
@@ -79,20 +81,56 @@ jobs:
       #       echo "🎉 所有文件上传检查完成！"
       #     fi
           
-      - name: Extract release information
+      - name: Get latest release information
         id: release_info
         run: |
-          echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-          echo "release_id=${{ github.event.release.id }}" >> $GITHUB_OUTPUT
-          echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
-          echo "author=${{ github.event.release.author.login }}" >> $GITHUB_OUTPUT
+          echo "🔍 获取最新创建的 release..."
           
-          # 统计 assets 数量
-          assets_count=$(echo '${{ toJson(github.event.release.assets) }}' | jq '. | length')
+          # 获取最新的 release（包括 prerelease）
+          releases=$(curl -s -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/SkorionOS/skorionos/releases?per_page=5")
+          
+          # 获取第一个 release（最新创建的）
+          release_info=$(echo "$releases" | jq '.[0]')
+          
+          tag_name=$(echo "$release_info" | jq -r '.tag_name')
+          release_id=$(echo "$release_info" | jq -r '.id')
+          release_url=$(echo "$release_info" | jq -r '.html_url')
+          author=$(echo "$release_info" | jq -r '.author.login')
+          is_prerelease=$(echo "$release_info" | jq -r '.prerelease')
+          created_at=$(echo "$release_info" | jq -r '.created_at')
+          
+          # 计算 release 创建时间距现在多久（秒）
+          created_timestamp=$(date -d "$created_at" +%s)
+          current_timestamp=$(date +%s)
+          age=$((current_timestamp - created_timestamp))
+          
+          echo "📦 找到 release: $tag_name"
+          echo "🏷️  类型: $([ "$is_prerelease" = "true" ] && echo "Prerelease" || echo "Stable")"
+          echo "🕐 创建时间: $created_at (${age}秒前)"
+          echo "🔗 URL: $release_url"
+          
+          # 验证：release 应该是最近创建的（如 30 分钟内）
+          max_age=1800  # 30 分钟
+          if [ $age -gt $max_age ]; then
+            echo "⚠️  警告: release 创建时间超过 ${max_age}秒，可能不是本次构建创建的"
+            echo "   但仍然会继续处理..."
+          fi
+          
+          # 获取 assets 信息
+          assets_count=$(echo "$release_info" | jq '.assets | length')
+          checksum_count=$(echo "$release_info" | jq '[.assets[] | select(.name | startswith("sha256sum-"))] | length')
+          
+          echo "📁 Assets: $assets_count (其中 checksum: $checksum_count)"
+          
+          # 输出
+          echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
+          echo "release_id=$release_id" >> $GITHUB_OUTPUT
+          echo "release_url=$release_url" >> $GITHUB_OUTPUT
+          echo "author=$author" >> $GITHUB_OUTPUT
           echo "assets_count=$assets_count" >> $GITHUB_OUTPUT
-          
-          # 统计 checksum 文件数量
-          checksum_count=$(echo '${{ toJson(github.event.release.assets) }}' | jq '[.[] | select(.name | startswith("sha256sum-"))] | length')
           echo "checksum_count=$checksum_count" >> $GITHUB_OUTPUT
       
       - name: Log release information
