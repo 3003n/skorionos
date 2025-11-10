@@ -67,6 +67,7 @@ export EXTRA_PACKAGES="\
 	poppler \
 	remmina \
 	solaar \
+	waydroid-helper \
 	yazi \
 "
 
