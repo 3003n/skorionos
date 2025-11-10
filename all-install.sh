@@ -160,7 +160,7 @@ source /postinstall
 postinstall_download
 
 # record installed packages & versions
-pacman -Q > /manifest
+pacman -Q > /package-list
 
 # preserve installed package database
 mkdir -p /usr/var/lib/pacman

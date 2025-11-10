@@ -128,6 +128,7 @@ fi
 rm ${BUILD_PATH}/all-install.sh
 rm ${BUILD_PATH}/postinstall
 rm ${BUILD_PATH}/sub-manifest
+rm ${BUILD_PATH}/manifest
 rm ${BUILD_PATH}/base-*
 
 #defrag the image
@@ -139,8 +140,8 @@ rm -rf ${BUILD_PATH}/extra
 
 echo "${SYSTEM_NAME}-${VERSION}" >${BUILD_PATH}/build_info
 echo "" >>${BUILD_PATH}/build_info
-cat ${BUILD_PATH}/manifest >>${BUILD_PATH}/build_info
-rm ${BUILD_PATH}/manifest
+cat ${BUILD_PATH}/package-list >>${BUILD_PATH}/build_info
+rm ${BUILD_PATH}/package-list
 
 # freeze archive date of build to avoid package drift on unlock
 # if no archive date is set
