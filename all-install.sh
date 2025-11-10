@@ -168,10 +168,12 @@ cp -r /var/lib/pacman/local /usr/var/lib/pacman/
 
 # move kernel image and initrd to a defualt location if "linux" is not used
 if [ ${KERNEL_PACKAGE} != 'linux' ] ; then
-	mv /boot/vmlinuz-${KERNEL_PACKAGE} /boot/vmlinuz-linux
-	mv /boot/initramfs-${KERNEL_PACKAGE}.img /boot/initramfs-linux.img
-	mv /boot/initramfs-${KERNEL_PACKAGE}-fallback.img /boot/initramfs-linux-fallback.img
-	rm /etc/mkinitcpio.d/${KERNEL_PACKAGE}.preset
+	echo "Moving kernel image and initrd to a defualt location if 'linux' is not used"
+	ls -l /boot/*
+	[ -f /boot/vmlinuz-${KERNEL_PACKAGE} ] && mv /boot/vmlinuz-${KERNEL_PACKAGE} /boot/vmlinuz-linux
+	[ -f /boot/initramfs-${KERNEL_PACKAGE}.img ] && mv /boot/initramfs-${KERNEL_PACKAGE}.img /boot/initramfs-linux.img
+	[ -f /boot/initramfs-${KERNEL_PACKAGE}-fallback.img ] && mv /boot/initramfs-${KERNEL_PACKAGE}-fallback.img /boot/initramfs-linux-fallback.img
+	rm -f /etc/mkinitcpio.d/${KERNEL_PACKAGE}.preset
 fi
 
 # clean up/remove unnecessary files
