@@ -144,7 +144,8 @@ ID_LIKE=arch
 ANSI_COLOR=\"1;31\"
 HOME_URL=\"${WEBSITE}\"
 DOCUMENTATION_URL=\"${DOCUMENTATION_URL}\"
-BUG_REPORT_URL=\"${BUG_REPORT_URL}\"" > /etc/os-release
+BUG_REPORT_URL=\"${BUG_REPORT_URL}\"
+LOGO=distributor-logo-${SYSTEM_NAME}" > /etc/os-release
 
 # install extra certificates
 trust anchor --store /extra/*.crt
