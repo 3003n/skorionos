@@ -250,7 +250,7 @@ all_download() {
 	download_decky_plugin "chenx-dust/BetterKeyboard" $decky_plugin_path ".zip"
 
 	# honjow/MangoPeel
-	download_decky_plugin "honjow/MangoPeel" $decky_plugin_path ".zip"
+	# download_decky_plugin "honjow/MangoPeel" $decky_plugin_path ".zip"
 
 	# pre download css themes
 
