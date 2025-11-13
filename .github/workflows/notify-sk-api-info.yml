@@ -8,6 +8,7 @@ on:
     workflows: 
       - System image matrix build - stable
       - System image matrix pkg build - stable
+      - System image matrix pkg build - unstable
     types: [completed]
 
 jobs:

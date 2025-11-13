@@ -7,6 +7,7 @@ on:
       - System image matrix build - stable
       - System image matrix build - unstable
       - System image matrix pkg build - stable
+      - System image matrix pkg build - unstable
       - Test CI
     types: [completed]
     
