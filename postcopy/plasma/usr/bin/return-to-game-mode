@@ -1,12 +1,16 @@
 #!/bin/bash
 
+short_session_tracker_file="/tmp/chimeraos-short-session-tracker"
+
 if command -v waydroid &> /dev/null; then
   waydroid session stop
 fi
 
-sudo sed -i "s/^NoDisplay=true/#NoDisplay=true/" /usr/share/applications/plasma-wayland.desktop
+# sudo sed -i "s/^NoDisplay=true/#NoDisplay=true/" /usr/share/applications/plasma-wayland.desktop
 # plasma-session-oneshot
 # # sudo skorion-session-use-sddm gamescope-session-steam
+
+[ -f "$short_session_tracker_file" ] && rm "$short_session_tracker_file"
 
 USER=$(id -nu 1000)
 

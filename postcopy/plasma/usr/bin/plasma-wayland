@@ -1,4 +1,0 @@
-#!/bin/bash
-
-sudo sed -i "s/^#NoDisplay=true/NoDisplay=true/" /usr/share/applications/plasma-wayland.desktop
-sudo skorion-session-use-sddm plasma

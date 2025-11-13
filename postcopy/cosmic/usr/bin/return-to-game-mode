@@ -4,7 +4,8 @@ if command -v waydroid &> /dev/null; then
   waydroid session stop
 fi
 
-rm /tmp/skorionos-short-session-tracker || true
+short_session_tracker_file="/tmp/chimeraos-short-session-tracker"
+[ -f "$short_session_tracker_file" ] && rm "$short_session_tracker_file"
 
 if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
   # SESSION_ID=$(loginctl session-status | head -n 1 | awk '{print $1}')

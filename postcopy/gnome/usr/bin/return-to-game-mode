@@ -1,10 +1,12 @@
 #!/bin/bash
 
+short_session_tracker_file="/tmp/chimeraos-short-session-tracker"
+
 if command -v waydroid &> /dev/null; then
   waydroid session stop
 fi
 
-rm /tmp/skorionos-short-session-tracker || true
+[ -f "$short_session_tracker_file" ] && rm "$short_session_tracker_file"
 
 # sudo sed -i "s/^NoDisplay=true/#NoDisplay=true/" /usr/share/applications/gnome-x11.desktop
 #[ "$XDG_SESSION_TYPE" = "wayland" ] && gnome-session-quit --no-prompt || gnome-session-oneshot

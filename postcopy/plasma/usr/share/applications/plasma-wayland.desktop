@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Plasma (Wayland Mode)
-Name[zh_CN]=Plasma (Wayland 模式)
-Exec=/usr/bin/plasma-wayland
-Icon=/usr/share/icons/skorionos/scalable/actions/wayland-mode.svg
-Terminal=false
-Type=Application
-StartupNotify=false
-NoDisplay=true
