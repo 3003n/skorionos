@@ -316,6 +316,16 @@ postinstallhook() {
 		"tuned-gui.desktop"
 		"vim.desktop"
 		"winetricks.desktop"
+		"assistant.desktop"
+		"designer.desktop"
+		"linguist.desktop"
+		"qtcreator.desktop"
+		"qdbusviewer.desktop"
+		"assistant-qt6.desktop"
+		"designer-qt6.desktop"
+		"linguist-qt6.desktop"
+		"qtcreator-qt6.desktop"
+		"lstopo.desktop"
 	)
 	for shortcut in "${desktop_shortcuts_to_hide[@]}"; do
 		find /usr/share/applications/* -type f |
