@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+  <wallpaper deleted="false">
+    <name>Lady</name>
+    <filename>/usr/share/backgrounds/cachyos/PinkLady.png</filename>
+    <filename-dark>/usr/share/backgrounds/cachyos/BlueLady.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#86b6ef</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+</wallpapers>

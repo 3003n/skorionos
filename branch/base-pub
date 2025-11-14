@@ -12,15 +12,21 @@ export BASE_PACKAGES="\
 	cage \
 	expect \
 	exfatprogs \
+	fakeroot \
 	fastfetch \
 	fd \
+	firejail \
 	freerdp \
 	fzf \
 	f2fs-tools \
+	fuse-zip \
+	git \
+	git-lfs \
 	gparted \
 	haveged \
 	htop \
 	intel-gpu-tools \
+	intel-undervolt \
 	ibus-libpinyin \
 	ibus-table-chinese \
 	ibus-anthy \
@@ -32,18 +38,23 @@ export BASE_PACKAGES="\
 	libcec \
 	libdisplay-info \
 	libva-intel-driver \
+	liquidctl \
+	lrzip \
 	lzip \
+	modemmanager \
 	nmon \
 	ntfs-3g \
 	otf-fira-mono \
 	otf-fira-sans \
 	otf-font-awesome \
 	patch \
+	podman \
 	podman-compose \
 	podman-docker \
 	python-pyclip \
 	python-pyudev \
 	python-systemd \
+	qtractor \
 	ripgrep \
 	screen \
 	scx-scheds \
@@ -52,13 +63,13 @@ export BASE_PACKAGES="\
 	switcheroo-control \
 	s-tui \
 	ttf-dejavu \
+	unace \
 	v2ray \
 	wlr-randr \
 	xdelta3 \
 	xorg-xinit \
 	xorg-server-xvfb \
 	zoxide \
-	zsh \
 "
 
 export EXTRA_PACKAGES="\
@@ -94,6 +105,9 @@ export BASE_AUR_PACKAGES="\
 	nbfc-linux \
 	noto-fonts-cjk-fontconfig \
 	onedrive-abraunegg \
+	rtl8812au-dkms-git \
+	rtl8814au-dkms-git \
+	rtl8821au-dkms-git \
 	sx \
 	vboard \
 "

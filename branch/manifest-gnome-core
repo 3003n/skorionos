@@ -6,7 +6,7 @@ done
 
 export POSTCOPY="\
 	gnome \
-	wallpapers/gnome-backgrounds-cachyos \
+	wallpapers/gnome-backgrounds-core \
 "
 
 export SUB_PACKAGES="\

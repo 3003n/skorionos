@@ -23,7 +23,6 @@ MESA_PACKAGE="\
 	lib32-vulkan-swrast \
 	lib32-vulkan-virtio \
 	mesa \
-	mesa-docs \
 	opencl-mesa \
 	vulkan-intel \
 	vulkan-mesa-layers \
@@ -48,18 +47,13 @@ export PACKAGES="\
 	dmidecode \
 	efibootmgr \
 	evtest \
-	fakeroot \
 	ffmpeg \
 	file \
 	ffmpegthumbnailer \
-	firejail \
 	flatpak \
 	fmt \
-	fuse-zip \
 	fuse2 \
 	fwupd \
-	git \
-	git-lfs \
 	gst-plugin-pipewire \
 	gvfs-dnssd \
 	gvfs-smb \
@@ -67,7 +61,6 @@ export PACKAGES="\
 	gzip \
 	intel-media-driver \
 	intel-ucode \
-	intel-undervolt \
 	kitty-terminfo \
 	less \
 	lib32-curl \
@@ -86,12 +79,9 @@ export PACKAGES="\
 	libxcrypt-compat \
 	libxss \
 	linux-firmware \
-	liquidctl \
 	logrotate \
-	lrzip \
 	lshw \
 	mesa-demos \
-	modemmanager \
 	nano \
 	networkmanager \
 	nfs-utils \
@@ -105,10 +95,8 @@ export PACKAGES="\
 	pipewire-jack \
 	pipewire-pulse \
 	plymouth \
-	podman \
 	pulsemixer \
 	python \
-	qtractor \
 	rsync \
 	sddm \
 	smbclient \
@@ -119,7 +107,6 @@ export PACKAGES="\
 	tar \
 	tree \
 	ttf-liberation \
-	unace \
 	unrar \
 	unzip \
 	usb_modeswitch \
@@ -137,6 +124,7 @@ export PACKAGES="\
 	xorg-server \
 	xz \
 	zip \
+	zsh \
 "
 
 export PACKAGE_OVERRIDES_URLS="\
@@ -179,9 +167,6 @@ export AUR_PACKAGES="\
 	nintendo-udev \
 	pikaur \
 	refind-r \
-	rtl8812au-dkms-git \
-	rtl8814au-dkms-git \
-	rtl8821au-dkms-git \
 	ryzenadj-git \
 	ryzen_smu-dkms-git \
 	sk-boot-to-windows \
