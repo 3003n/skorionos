@@ -108,8 +108,13 @@ passwd --lock root
 # groupadd -r autologin
 # if group autologin does not exist, create it
 if ! getent group autologin > /dev/null 2>&1; then
-	groupadd -r autologin,docker
+	groupadd -r autologin
 fi
+
+if ! getent group docker > /dev/null 2>&1; then
+	groupadd -r docker
+fi
+
 # useradd -m ${USERNAME} -G autologin,wheel,i2c,input
 if ! getent passwd ${USERNAME} > /dev/null 2>&1; then
 	useradd -m ${USERNAME} -G autologin,wheel,i2c,input,docker
