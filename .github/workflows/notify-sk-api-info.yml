@@ -6,9 +6,7 @@ name: Notify SK-API-Info on Release
 on:
   workflow_run:
     workflows: 
-      - System image matrix build - stable
-      - System image matrix pkg build - stable
-      - System image matrix pkg build - unstable
+      - System image matrix pkg build
     types: [completed]
 
 jobs:

@@ -1,4 +1,4 @@
-name: System image matrix pkg build - stable
+name: System image matrix pkg build
 
 env:
   REGISTRY: ghcr.io
