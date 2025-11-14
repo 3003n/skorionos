@@ -115,6 +115,10 @@ if ! getent group docker > /dev/null 2>&1; then
 	groupadd -r docker
 fi
 
+if ! getent group i2c > /dev/null 2>&1; then
+	groupadd -r i2c
+fi
+
 # useradd -m ${USERNAME} -G autologin,wheel,i2c,input
 if ! getent passwd ${USERNAME} > /dev/null 2>&1; then
 	useradd -m ${USERNAME} -G autologin,wheel,i2c,input,docker
