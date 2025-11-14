@@ -164,6 +164,7 @@ export AUR_PACKAGES="\
 	hhd-ui \
 	hhfc-git \
 	inputplumber-bin \
+	lib32-extest \
 	linux-firmware-valve \
 	nintendo-udev \
 	pikaur \

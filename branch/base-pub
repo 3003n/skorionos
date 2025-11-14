@@ -100,7 +100,6 @@ export NVDIA_PACKAGES="\
 "
 
 export BASE_AUR_PACKAGES="\
-	lib32-extest \
 	networkd-dispatcher \
 	nbfc-linux \
 	noto-fonts-cjk-fontconfig \
