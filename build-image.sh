@@ -75,32 +75,39 @@ mkfs.btrfs -f ${BUILD_IMG}
 mount -t btrfs -o loop,nodatacow ${BUILD_IMG} ${MOUNT_PATH}
 btrfs subvolume create ${BUILD_PATH}
 
-# copy the makepkg.conf into chroot
-cp /etc/makepkg.conf rootfs/etc/makepkg.conf
+before_chroot() {
+	umount ${BUILD_PATH} 2>/dev/null || true
 
-# bootstrap using our configuration
-pacstrap -K -C rootfs/etc/pacman.conf ${BUILD_PATH}
+	# copy the makepkg.conf into chroot
+	cp /etc/makepkg.conf rootfs/etc/makepkg.conf
 
-# copy the builder mirror list into chroot
-mkdir -p rootfs/etc/pacman.d
-cp /etc/pacman.d/mirrorlist rootfs/etc/pacman.d/mirrorlist
+	# bootstrap using our configuration
+	pacstrap -K -C rootfs/etc/pacman.conf ${BUILD_PATH}
 
-# copy files into chroot
-cp -R manifest sub-manifest base-* postinstall all-install.sh rootfs/. ${BUILD_PATH}/
+	# copy the builder mirror list into chroot
+	mkdir -p rootfs/etc/pacman.d
+	cp /etc/pacman.d/mirrorlist rootfs/etc/pacman.d/mirrorlist
 
+	# copy files into chroot
+	cp -R manifest sub-manifest base-* postinstall all-install.sh rootfs/. ${BUILD_PATH}/
 
-mkdir -p ${BUILD_PATH}/pre-download
-cp -rv pre-download/*.tar.gz ${BUILD_PATH}/pre-download
+	mkdir -p ${BUILD_PATH}/pre-download
+	rm -rf ${BUILD_PATH}/pre-download/*
+	cp -rv pre-download/*.tar.gz ${BUILD_PATH}/pre-download
 
-mkdir -p ${BUILD_PATH}/override_pkgs
-mv ${BUILD_PATH}/extra/*.pkg.tar.zst ${BUILD_PATH}/override_pkgs/ || true
+	mkdir -p ${BUILD_PATH}/override_pkgs
+	rm -rf ${BUILD_PATH}/override_pkgs/*
+	mv ${BUILD_PATH}/extra/*.pkg.tar.zst ${BUILD_PATH}/override_pkgs/ || true
 
-if [ -n "${PACKAGE_OVERRIDES_URLS}" ]; then
-	wget --directory-prefix=${BUILD_PATH}/override_pkgs ${PACKAGE_OVERRIDES_URLS}
-fi
+	if [ -n "${PACKAGE_OVERRIDES_URLS}" ]; then
+		wget --directory-prefix=${BUILD_PATH}/override_pkgs ${PACKAGE_OVERRIDES_URLS}
+	fi
 
-# chroot into target
-mount --bind ${BUILD_PATH} ${BUILD_PATH}
+	# chroot into target
+	mount --bind ${BUILD_PATH} ${BUILD_PATH}
+	
+	return 0
+}
 
 if [ -z "${TEST_BUILD}" ]; then
 
@@ -111,6 +118,9 @@ if [ -z "${TEST_BUILD}" ]; then
 	while [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; do
 		RETRY_COUNT=$((RETRY_COUNT + 1))
 		echo ">>>>>> All install  (${RETRY_COUNT}/${MAX_RETRIES})"
+		if ! before_chroot; then
+			continue
+		fi
 		if ! arch-chroot ${BUILD_PATH} /bin/bash -c "cd / && /all-install.sh"; then
 			continue
 		fi
