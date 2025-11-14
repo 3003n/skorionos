@@ -181,7 +181,7 @@ if [ "${COMPRESS_METHOD}" = "zstd" ]; then
     COMPRESS_LEVEL="${COMPRESS_LEVEL:--15}"
     COMPRESS_EXT="zst"
 else
-    COMPRESS_LEVEL="${COMPRESS_LEVEL:--6}"
+    COMPRESS_LEVEL="${COMPRESS_LEVEL:--7}"
     COMPRESS_EXT="xz"
 fi
 
