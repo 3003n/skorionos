@@ -13,7 +13,6 @@ export BASE_GNOME_PACKAGES="\
 	gnome-shell \
 	gnome-software \
 	gnome-system-monitor \
-	gnome-terminal \
 	gnome-text-editor \
 	gnome-tweaks \
 	gnome-remote-desktop \
@@ -29,6 +28,7 @@ export BASE_GNOME_PACKAGES="\
 "
 
 export EXTRA_GNOME_PACKAGES="\
+	gnome-terminal \
 	noto-fonts-cjk \
 	papirus-icon-theme \
 "

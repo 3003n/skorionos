@@ -270,6 +270,7 @@ postinstallhook() {
 		gcc
 		ardour
 		wine
+		"${KERNEL_PACKAGE}-headers"
 		)
 	for package in "${remove_packages[@]}"; do
 		pacman --noconfirm -Rnsdd "$package" || true
@@ -288,7 +289,36 @@ postinstallhook() {
 		sed -i 's@Exec=waydroid first-launch@Exec=/usr/bin/waydroid-launcher\nX-Steam-Library-Capsule=/usr/share/applications/Waydroid/capsule.png\nX-Steam-Library-Hero=/usr/share/applications/Waydroid/hero.png\nX-Steam-Library-Logo=/usr/share/applications/Waydroid/logo.png\nX-Steam-Library-StoreCapsule=/usr/share/applications/Waydroid/store-logo.png\nX-Steam-Controller-Template=Desktop@g' /usr/share/applications/Waydroid.desktop
 		curl -Lo /usr/bin/waydroid-choose-gpu https://raw.githubusercontent.com/Quackdoc/waydroid-scripts/main/waydroid-choose-gpu.sh
 		chmod +x /usr/bin/waydroid-choose-gpu
-	fi 
+	fi
+
+	# clean up desktop shortcuts
+	desktop_shortcuts_to_hide=(
+		"avahi-.*.desktop"
+		"btop.desktop"
+		"bssh.desktop"
+		"bvnc.desktop"
+		"gtk-lshw.desktop"
+		"qv4l2.desktop"
+		"qvidcap.desktop"
+		".*qtractor.desktop"
+		"electron.*.desktop"
+		"hdajackretask.desktop"
+		"hdspconf.desktop"
+		"hdspmixer.desktop"
+		"htop.desktop"
+		"hwmixvolume.desktop"
+		"envy24control.desktop"
+		"mpv.desktop"
+		"nvtop.desktop"
+		"tuned-gui.desktop"
+		"vim.desktop"
+		"winetricks.desktop"
+	)
+	for shortcut in "${desktop_shortcuts_to_hide[@]}"; do
+		find /usr/share/applications/* -type f |
+			grep -E "$shortcut" |
+			xargs -I {} sudo sh -c "grep -q -E '^NoDisplay=true' {} || echo 'hide shortcut '$shortcut && echo NoDisplay=true >> {}"
+	done
 
 	# Onboard
 	if [ -f /usr/share/applications/onboard.desktop ]; then
