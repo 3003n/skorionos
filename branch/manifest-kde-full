@@ -38,12 +38,12 @@ export SUB_PACKAGES_TO_DELETE="\
 	mutter \
 "
 
-export SUB_PACKAGE_OVERRIDES=""
+export SUB_PACKAGE_OVERRIDES_URLS=""
 
 sub_postinstallhook() {
-	if [ -n "$SUB_PACKAGE_OVERRIDES" ]; then
+	if [ -n "$SUB_PACKAGE_OVERRIDES_URLS" ]; then
 		temp_pkg_dir=$(mktemp -d)
-		wget --directory-prefix=$temp_pkg_dir $SUB_PACKAGE_OVERRIDES
+		wget --directory-prefix=$temp_pkg_dir $SUB_PACKAGE_OVERRIDES_URLS
 
 		pacman --noconfirm -U --overwrite='*' $temp_pkg_dir/*.pkg.tar.zst --needed
 		rm -rf $temp_pkg_dir

@@ -95,8 +95,8 @@ cp -rv pre-download/*.tar.gz ${BUILD_PATH}/pre-download
 mkdir -p ${BUILD_PATH}/override_pkgs
 mv ${BUILD_PATH}/extra/*.pkg.tar.zst ${BUILD_PATH}/override_pkgs/ || true
 
-if [ -n "${PACKAGE_OVERRIDES}" ]; then
-	wget --directory-prefix=${BUILD_PATH}/override_pkgs ${PACKAGE_OVERRIDES}
+if [ -n "${PACKAGE_OVERRIDES_URLS}" ]; then
+	wget --directory-prefix=${BUILD_PATH}/override_pkgs ${PACKAGE_OVERRIDES_URLS}
 fi
 
 # chroot into target

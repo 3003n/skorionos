@@ -20,6 +20,11 @@ sed -i '/ParallelDownloads/s/^/#/g' /etc/pacman.conf
 # Cannot check space in chroot
 sed -i '/CheckSpace/s/^/#/g' /etc/pacman.conf
 
+LOCAL_REPO="/override_pkgs"
+
+repo-add ${LOCAL_REPO}/skorion_temp.db.tar.gz ${LOCAL_REPO}/*.pkg.*
+sed -i "/^\[skorion\]/i [skorion_temp]\nSigLevel = Optional TrustAll\nServer = file://${LOCAL_REPO}\n" /etc/pacman.conf
+
 # update package databases
 pacman --noconfirm -Syy
 
@@ -27,28 +32,32 @@ pacman --noconfirm -Syy
 sed -i '/BUILDENV/s/ check/ !check/g' /etc/makepkg.conf
 sed -i '/OPTIONS/s/ debug/ !debug/g' /etc/makepkg.conf
 
-# install kernel package
-if [ "$KERNEL_PACKAGE_ORIGIN" == "local" ] ; then
-	pacman --noconfirm -U --overwrite '*' \
-	/override_pkgs/${KERNEL_PACKAGE}-*.pkg.tar.zst
-else
-	pacman --noconfirm -S "${KERNEL_PACKAGE}" "${KERNEL_PACKAGE}-headers" --needed
-fi
+# # install kernel package
+# if [ "$KERNEL_PACKAGE_ORIGIN" == "local" ] ; then
+# 	pacman --noconfirm -U --overwrite '*' \
+# 	/override_pkgs/${KERNEL_PACKAGE}-*.pkg.tar.zst
+# else
+# 	pacman --noconfirm -S "${KERNEL_PACKAGE}" "${KERNEL_PACKAGE}-headers" --needed
+# fi
 
-for file in ${OWN_PACKAGES_FILE_TO_DELETE}; do
-	rm -f /override_pkgs/${file} || true
-done
+# for file in ${OWN_PACKAGES_FILE_TO_DELETE}; do
+# 	rm -f /override_pkgs/${file} || true
+# done
 
 # install override packages
-pacman --noconfirm -U --overwrite '*' /override_pkgs/* --needed
-rm -rf /var/cache/pacman/pkg
+# pacman --noconfirm -U --overwrite '*' /override_pkgs/* --needed
+# rm -rf /var/cache/pacman/pkg
 
-FULL_PACKAGES="${PACKAGES} ${SUB_PACKAGES} ${AUR_PACKAGES} ${SUB_AUR_PACKAGES} ${SUB_LOCAL_PACKAGES}"
+FULL_PACKAGES="${PACKAGE_OVERRIDES} ${PACKAGES} ${SUB_PACKAGES} ${AUR_PACKAGES} ${SUB_AUR_PACKAGES} ${SUB_LOCAL_PACKAGES}"
 
 # install packages
 pacman --noconfirm -S --overwrite '*' --disable-download-timeout ${FULL_PACKAGES} --needed
 
+rm -rf /override_pkgs
 rm -rf /var/cache/pacman/pkg
+
+# delete temp repo
+sed -i "/^\[skorion_temp\]/,+3d" /etc/pacman.conf
 
 # delete packages
 for package in ${PACKAGES_TO_DELETE}; do

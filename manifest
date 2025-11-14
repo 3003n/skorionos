@@ -145,13 +145,22 @@ export PACKAGES="\
 	zip \
 "
 
-export PACKAGE_OVERRIDES="\
+export PACKAGE_OVERRIDES_URLS="\
 	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.7-3/linux-skchos-6.17.7-3-x86_64.pkg.tar.zst \
 	https://github.com/SkorionOS/linux-chimeraos/releases/download/v6.17.7-3/linux-skchos-headers-6.17.7-3-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/lib32-libxkbcommon/lib32-libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon/libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon-x11/libxkbcommon-x11-1.11.0-1-x86_64.pkg.tar.zst \
 	https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/ibus-pinyin-1.5.1-2.3-x86_64.pkg.tar.zst \
+"
+
+export PACKAGE_OVERRIDES="\
+	linux-skchos \
+	linux-skchos-headers \
+	lib32-libxkbcommon \
+	libxkbcommon \
+	libxkbcommon-x11 \
+	ibus-pinyin \
 "
 
 # Each entry is the clone url (https://aur.archlinux.org/{AUR_PACKAGE}.git)
