@@ -1,10 +1,12 @@
 #!/bin/bash
 
 export BASE_PACKAGES="\
+	acpi_call-dkms \
 	aria2 \
 	bat \
 	bluez-utils \
 	btop \
+	distrobox \
 	cmake \
 	ddcutil \
 	cage \
@@ -17,6 +19,8 @@ export BASE_PACKAGES="\
 	f2fs-tools \
 	gparted \
 	haveged \
+	htop \
+	intel-gpu-tools \
 	ibus-libpinyin \
 	ibus-table-chinese \
 	ibus-anthy \
@@ -35,7 +39,6 @@ export BASE_PACKAGES="\
 	otf-fira-sans \
 	otf-font-awesome \
 	patch \
-	plymouth \
 	podman-compose \
 	podman-docker \
 	python-pyclip \
@@ -44,6 +47,7 @@ export BASE_PACKAGES="\
 	ripgrep \
 	screen \
 	scx-scheds \
+	shfmt \
 	smartmontools \
 	switcheroo-control \
 	s-tui \
@@ -67,6 +71,8 @@ export EXTRA_PACKAGES="\
 	poppler \
 	remmina \
 	solaar \
+	tailscale \
+	tuned-ppd \
 	waydroid-helper \
 	yazi \
 "
@@ -84,6 +90,7 @@ export NVDIA_PACKAGES="\
 
 export BASE_AUR_PACKAGES="\
 	lib32-extest \
+	networkd-dispatcher \
 	nbfc-linux \
 	noto-fonts-cjk-fontconfig \
 	onedrive-abraunegg \
@@ -97,17 +104,15 @@ export EXTRA_AUR_PACKAGES="\
 	protonplus \
 	protontricks \
 	tsukimi-bin \
+	waydroid-script-git \
 "
 
 export BASE_AUR_PACKAGES="$BASE_AUR_PACKAGES $EXTRA_AUR_PACKAGES"
 
-export BASE_LOCAL_PACKAGES="\
+export CORE_LOCAL_PACKAGES="\
 	ayaneo-platform-dkms-git \
-	clipboard-sync \
-	davfs2 \
 	mangohud-git \
 	powerstation-git \
-	rtl88x2bu-dkms-git \
 	skorionos-fastfetch-logo \
 	steam-launch-manager \
 	steam-removable-media-git \
@@ -115,4 +120,9 @@ export BASE_LOCAL_PACKAGES="\
 	steamos-powerbuttond \
 	xonedo-dkms \
 	xonedo-firmware \
+"
+export BASE_LOCAL_PACKAGES="\
+	$CORE_LOCAL_PACKAGES \
+	davfs2 \
+	rtl88x2bu-dkms-git \
 "

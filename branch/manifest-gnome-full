@@ -6,6 +6,7 @@ done
 
 export POSTCOPY="\
 	gnome \
+	gnome-extra \
 	wallpapers/gnome-backgrounds \
 	wallpapers/gnome-backgrounds-cachyos \
 "

@@ -24,10 +24,13 @@ export BASE_GNOME_PACKAGES="\
 	loupe \
 	nautilus \
 	nautilus-python \
-	noto-fonts-cjk \
-	papirus-icon-theme \
 	xdg-desktop-portal-gnome \
 	xdg-user-dirs-gtk \
+"
+
+export EXTRA_GNOME_PACKAGES="\
+	noto-fonts-cjk \
+	papirus-icon-theme \
 "
 
 export BASE_GNOME_AUR_PACKAGES="\

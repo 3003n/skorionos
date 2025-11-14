@@ -78,10 +78,28 @@ done
 yes | pacman -S iptables-nft
 
 # enable services
-systemctl enable ${SERVICES}
+# systemctl enable ${SERVICES}	
+for service in ${SERVICES}; do
+	echo "Enabling service: $service"
+	is_enabled=$(systemctl is-enabled $service 2>&1 || true)
+	if [ "$is_enabled" == "disabled" ]; then
+		systemctl enable $service
+	else
+		echo "Service: $service is $is_enabled"
+	fi
+done
 
 # enable user services
-systemctl --global enable ${USER_SERVICES}
+# systemctl --global enable ${USER_SERVICES}
+for service in ${USER_SERVICES}; do
+	echo "Enabling user service: $service"
+	is_enabled=$(systemctl --global is-enabled $service 2>&1 || true)
+	if [ "$is_enabled" == "disabled" ]; then
+		systemctl --global enable $service
+	else
+		echo "User service: $service is $is_enabled"
+	fi
+done
 
 # disable root login
 passwd --lock root
@@ -90,11 +108,11 @@ passwd --lock root
 # groupadd -r autologin
 # if group autologin does not exist, create it
 if ! getent group autologin > /dev/null 2>&1; then
-	groupadd -r autologin
+	groupadd -r autologin,docker
 fi
 # useradd -m ${USERNAME} -G autologin,wheel,i2c,input
 if ! getent passwd ${USERNAME} > /dev/null 2>&1; then
-	useradd -m ${USERNAME} -G autologin,wheel,i2c,input
+	useradd -m ${USERNAME} -G autologin,wheel,i2c,input,docker
 fi
 echo "${USERNAME}:${USERNAME}" | chpasswd
 

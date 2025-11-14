@@ -36,7 +36,6 @@ MESA_PACKAGE="\
 export PACKAGES="\
 	$MESA_PACKAGE \
 	accountsservice \
-	acpi_call-dkms \
 	alsa-firmware \
 	alsa-utils \
 	amd-ucode \
@@ -46,7 +45,6 @@ export PACKAGES="\
 	cpupower \
 	diffutils \
 	dkms \
-	distrobox \
 	dmidecode \
 	efibootmgr \
 	evtest \
@@ -67,8 +65,6 @@ export PACKAGES="\
 	gvfs-smb \
 	gvfs-nfs \
 	gzip \
-	htop \
-	intel-gpu-tools \
 	intel-media-driver \
 	intel-ucode \
 	intel-undervolt \
@@ -108,23 +104,21 @@ export PACKAGES="\
 	pipewire-alsa \
 	pipewire-jack \
 	pipewire-pulse \
+	plymouth \
 	podman \
 	pulsemixer \
 	python \
 	qtractor \
 	rsync \
 	sddm \
-	shfmt \
 	smbclient \
 	sof-firmware \
 	sshfs \
 	steam \
 	sudo \
-	tailscale \
 	tar \
 	tree \
 	ttf-liberation \
-	tuned-ppd \
 	unace \
 	unrar \
 	unzip \
@@ -182,7 +176,6 @@ export AUR_PACKAGES="\
 	hhfc-git \
 	inputplumber-bin \
 	linux-firmware-valve \
-	networkd-dispatcher \
 	nintendo-udev \
 	pikaur \
 	refind-r \
@@ -194,7 +187,6 @@ export AUR_PACKAGES="\
 	sk-boot-to-windows \
 	sk-chos-tool \
 	v4l-utils-git \
-	waydroid-script-git \
 	yay-git \
 	zenergy-dkms-git \
 "

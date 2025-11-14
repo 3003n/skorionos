@@ -6,24 +6,19 @@ done
 
 export POSTCOPY="\
 	gnome \
-	gnome-extra \
-	wallpapers/gnome-backgrounds \
 	wallpapers/gnome-backgrounds-cachyos \
 "
 
 export SUB_PACKAGES="\
-	$BASE_PACKAGES \
 	$BASE_GNOME_PACKAGES \
-	$EXTRA_GNOME_PACKAGES \
 "
 
 export SUB_AUR_PACKAGES="\
-	$BASE_AUR_PACKAGES \
 	$BASE_GNOME_AUR_PACKAGES \
 "
 
 export SUB_LOCAL_PACKAGES="\
-	$BASE_LOCAL_PACKAGES \
+	$CORE_LOCAL_PACKAGES \
 	$BASE_GNOME_LOCAL_PACKAGES \
 "
 

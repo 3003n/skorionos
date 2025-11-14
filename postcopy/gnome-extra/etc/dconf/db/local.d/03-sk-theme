@@ -1,3 +1,7 @@
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+icon-theme='Papirus'
+
 [org/gnome/desktop/background]
 picture-uri='file:///usr/share/backgrounds/cachyos/PinkLady.png'
 picture-uri-dark='file:///usr/share/backgrounds/cachyos/BlueLady.png'
