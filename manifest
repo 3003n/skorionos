@@ -38,6 +38,7 @@ export PACKAGES="\
 	alsa-firmware \
 	alsa-utils \
 	amd-ucode \
+	base-devel \
 	bash-completion \
 	bzip2 \
 	cifs-utils \
