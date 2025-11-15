@@ -22,8 +22,6 @@ export BASE_KDE_PACKAGES="\
 	kinfocenter \
 	konsole \
 	kpipewire \
-	krdc \
-	krdp \
 	kscreen \
 	ksshaskpass \
 	kwallet-pam \
@@ -42,6 +40,11 @@ export BASE_KDE_PACKAGES="\
 	spectacle \
 	xdg-desktop-portal-gtk \
 	xdg-desktop-portal-kde \
+"
+
+export EXTRA_KDE_PACKAGES="\
+	krdc \
+	krdp \
 "
 
 export BASE_KDE_AUR_PACKAGES="\
