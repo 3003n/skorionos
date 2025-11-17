@@ -1,0 +1,31 @@
+#! /bin/bash
+
+for base in base-*; do
+	source $base
+done
+
+export POSTCOPY="\
+	hyprland \
+	skel \
+	wallpapers/wallpapers \
+"
+
+export SUB_PACKAGES="\
+	$BASE_HYPRLAND_PACKAGES \
+"
+
+export SUB_AUR_PACKAGES="\
+	$BASE_HYPRLAND_AUR_PACKAGES \
+"
+
+export SUB_LOCAL_PACKAGES="\
+	$BASE_LOCAL_PACKAGES \
+"
+
+export SUB_PACKAGES_TO_DELETE="\
+	mutter \
+"
+
+sub_postinstallhook() {
+	hyprland_postinstallhook
+}
