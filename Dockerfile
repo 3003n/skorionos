@@ -24,6 +24,9 @@ RUN pacman --noconfirm -S \
 # Auto add PGP keys for users
 RUN mkdir -p /etc/gnupg/ && echo -e "keyserver-options auto-key-retrieve" >> /etc/gnupg/gpg.conf
 
+RUN sed -i '/BUILDENV/s/check/!check/g' /etc/makepkg.conf && \
+  sed -i '/OPTIONS/s/debug/!debug/g' /etc/makepkg.conf
+
 USER build
 ENV BUILD_USER "build"
 ENV GNUPGHOME  "/etc/pacman.d/gnupg"

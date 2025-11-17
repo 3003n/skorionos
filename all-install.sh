@@ -32,6 +32,9 @@ pacman --noconfirm -Syy
 sed -i '/BUILDENV/s/ check/ !check/g' /etc/makepkg.conf
 sed -i '/OPTIONS/s/ debug/ !debug/g' /etc/makepkg.conf
 
+echo ">>>>>> BUILDENV and OPTIONS in makepkg.conf:"
+grep -E '^BUILDENV|^OPTIONS' /etc/makepkg.conf
+
 # # install kernel package
 # if [ "$KERNEL_PACKAGE_ORIGIN" == "local" ] ; then
 # 	pacman --noconfirm -U --overwrite '*' \
@@ -185,6 +188,9 @@ LOGO=distributor-logo-${SYSTEM_NAME}" > /etc/os-release
 
 # install extra certificates
 trust anchor --store /extra/*.crt
+
+# delete dkms hooks before post install hook
+rm -rf ${FILES_TO_DELETE}
 
 # run post install hook
 postinstallhook

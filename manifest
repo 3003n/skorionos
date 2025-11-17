@@ -274,6 +274,7 @@ postinstallhook() {
 		gcc
 		ardour
 		wine
+		"${KERNEL_PACKAGE}-headers"
 		)
 	for package in "${remove_packages[@]}"; do
 		pacman --noconfirm -Rnsdd "$package" || true
