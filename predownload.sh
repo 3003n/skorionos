@@ -229,10 +229,10 @@ all_download() {
 	download_decky_plugin "honjow/decky-terminal" $decky_plugin_path
 
 	# CheatDeck
-	download_decky_plugin "SheffeyG/CheatDeck" $decky_plugin_path "CheatDeck.zip"
+	download_decky_plugin "SheffeyG/CheatDeck" $decky_plugin_path ".zip"
 
 	# aarron-lee/LegionGoRemapper
-	download_decky_plugin "aarron-lee/LegionGoRemapper" $decky_plugin_path
+	# download_decky_plugin "aarron-lee/LegionGoRemapper" $decky_plugin_path
 
 	# xXJSONDeruloXx/Decky-Framegen
 	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip" true
@@ -241,10 +241,10 @@ all_download() {
 	download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
 
 	# honjow/decky-wine-cellar
-	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path "wine-cellar.zip"
+	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path ".zip"
 
 	# honjow/decky-natpierce
-	download_decky_plugin "honjow/decky-natpierce" $decky_plugin_path "natpierce.zip"
+	download_decky_plugin "honjow/decky-natpierce" $decky_plugin_path ".zip"
 
 	# chenx-dust/BetterKeyboard
 	download_decky_plugin "chenx-dust/BetterKeyboard" $decky_plugin_path ".zip"
