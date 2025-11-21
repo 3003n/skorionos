@@ -31,6 +31,8 @@ export EXTRA_GNOME_PACKAGES="\
 	gnome-terminal \
 	noto-fonts-cjk \
 	papirus-icon-theme \
+	ubuntu-themes \
+	zuki-themes \
 "
 
 export BASE_GNOME_AUR_PACKAGES="\

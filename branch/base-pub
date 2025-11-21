@@ -108,6 +108,7 @@ export BASE_AUR_PACKAGES="\
 	rtl8814au-dkms-git \
 	rtl8821au-dkms-git \
 	sx \
+	zfs-dkms \
 "
 
 export EXTRA_AUR_PACKAGES="\
