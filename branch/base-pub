@@ -108,7 +108,6 @@ export BASE_AUR_PACKAGES="\
 	rtl8814au-dkms-git \
 	rtl8821au-dkms-git \
 	sx \
-	vboard \
 "
 
 export EXTRA_AUR_PACKAGES="\
