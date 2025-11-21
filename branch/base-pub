@@ -104,8 +104,6 @@ export BASE_AUR_PACKAGES="\
 	nbfc-linux \
 	noto-fonts-cjk-fontconfig \
 	onedrive-abraunegg \
-	rtl8812au-dkms-git \
-	rtl8814au-dkms-git \
 	rtl8821au-dkms-git \
 	sx \
 	zfs-dkms \
