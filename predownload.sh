@@ -238,7 +238,7 @@ all_download() {
 	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip" true
 
 	# xXJSONDeruloXx/decky-lsfg-vk
-	download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
+	# download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
 
 	# honjow/decky-wine-cellar
 	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path ".zip"
