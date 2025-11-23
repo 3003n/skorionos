@@ -252,6 +252,9 @@ all_download() {
 	# honjow/MangoPeel
 	# download_decky_plugin "honjow/MangoPeel" $decky_plugin_path ".zip"
 
+	# GedasFX/decky-ludusavi
+	download_decky_plugin "GedasFX/decky-ludusavi" $decky_plugin_path ".zip"
+
 	# pre download css themes
 
 	# pre download hhd css themes

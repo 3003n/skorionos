@@ -80,6 +80,7 @@ export EXTRA_PACKAGES="\
 	mpv \
 	openrgb \
 	poppler \
+	rclone \
 	remmina \
 	solaar \
 	tailscale \
@@ -104,6 +105,7 @@ export BASE_AUR_PACKAGES="\
 	nbfc-linux \
 	noto-fonts-cjk-fontconfig \
 	onedrive-abraunegg \
+	ludusavi-bin \
 	rtl8821au-dkms-git \
 	sx \
 	zfs-dkms \
