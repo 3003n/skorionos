@@ -108,7 +108,6 @@ export BASE_AUR_PACKAGES="\
 	ludusavi-bin \
 	rtl8821au-dkms-git \
 	sx \
-	zfs-dkms \
 "
 
 export EXTRA_AUR_PACKAGES="\
