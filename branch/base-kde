@@ -31,6 +31,7 @@ export BASE_KDE_PACKAGES="\
 	plasma-browser-integration \
 	plasma-desktop \
 	plasma-disks \
+	plasma-keyboard \
 	plasma-nm \
 	plasma-pa \
 	plasma-systemmonitor \
