@@ -1,5 +1,5 @@
 # SkorionOS
-[![](https://img.shields.io/github/downloads/SkorionOS/skorionos/total.svg)](https://gitHub.com/SkorionOS/skorionos/releases) [![](https://img.shields.io/github/downloads/SkorionOS/skorionos/latest/total)](https://github.com/SkorionOS/skorionos/releases/latest) [![](https://img.shields.io/github/v/release/SkorionOS/skorionos)](https://github.com/SkorionOS/skorionos/releases/latest)
+[![](https://img.shields.io/github/downloads/SkorionOS/skorionos/total.svg)](https://gitHub.com/SkorionOS/skorionos/releases) [![](https://img.shields.io/github/downloads/SkorionOS/skorionos/latest/total)](https://github.com/SkorionOS/skorionos/releases/latest) [![](https://img.shields.io/github/v/release/SkorionOS/skorionos)](https://github.com/SkorionOS/skorionos/releases/latest) <a href="https://www.buymeacoffee.com/honjow" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="width: 76px !important;" ></a> 
 
 Bringing the console experience to pc./ 将游戏主机体验带到 PC。
 
