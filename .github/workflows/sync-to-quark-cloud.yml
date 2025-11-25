@@ -1,4 +1,4 @@
-name: Sync to Cloud
+name: Sync to Quark Cloud
 
 on:
   # 自动触发：当release创建workflow完成时
@@ -29,12 +29,12 @@ on:
         description: '下载线程数'
         required: false
         type: string
-        default: '5'
+        default: '3'
       transfer_threads:
         description: '传输线程数'
         required: false
         type: string
-        default: '5'
+        default: '3'
       table_language:
         description: '表格语言 (zh/en)'
         required: false
@@ -50,7 +50,7 @@ on:
         default: false
 
 jobs:
-  sync-to-mobile-cloud:
+  sync-to-quark-cloud:
     runs-on: ubuntu-latest
     # 只在源workflow成功时运行，或者是手动触发
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
@@ -69,10 +69,12 @@ jobs:
           rmz_version: "3.1.1"  # Required when rm_cmd is 'rmz'
           testing: false
 
-      - name: Run mobile cloud sync script
+      - name: Sync to Quark Cloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MOBILE_CLOUD_AUTHORIZATION: ${{ secrets.MOBILE_CLOUD_AUTHORIZATION }}
+          CLOUD_PROVIDER: "quark"
+          CLOUD_AUTH: ${{ secrets.QUARK_COOKIE }}
+          TARGET_FOLDER: "SkorionOS_Github/img"
           # 下载模式配置环境变量
           USE_BATCH_DOWNLOAD: ${{ inputs.use_batch_download }}
           BATCH_DOWNLOAD_THREADS: ${{ inputs.download_threads }}
@@ -81,18 +83,10 @@ jobs:
           USE_EMOJI: ${{ inputs.use_emoji }}
           FORCE_SYNC: ${{ inputs.force_sync }}
         run: |
-          # 调试：显示原始输入值
-          # echo "🐛 调试信息："
-          # echo "  inputs.table_language: '${{ inputs.table_language }}'"
-          # echo "  inputs.use_emoji: '${{ inputs.use_emoji }}'"
-          # echo "  inputs.force_sync: '${{ inputs.force_sync }}'"
-          # echo "  inputs.use_batch_download: '${{ inputs.use_batch_download }}'"
-          # echo ""
-          
           # 检查必需的环境变量
-          if [ -z "$MOBILE_CLOUD_AUTHORIZATION" ]; then
-            echo "❌ 未找到移动云盘认证信息"
-            echo "请在仓库Secrets中设置 MOBILE_CLOUD_AUTHORIZATION"
+          if [ -z "$CLOUD_AUTH" ]; then
+            echo "❌ 未找到夸克网盘Cookie"
+            echo "请在仓库Secrets中设置 QUARK_COOKIE"
             exit 1
           fi
           
@@ -100,8 +94,8 @@ jobs:
           TAG_NAME="${{ inputs.tag_name }}"
 
           USE_BATCH_DOWNLOAD="${USE_BATCH_DOWNLOAD:-true}"  # true: 多线程批量下载, false: 单文件下载
-          BATCH_DOWNLOAD_THREADS="${BATCH_DOWNLOAD_THREADS:-5}"   # 批量下载线程数
-          BATCH_TRANSFER_THREADS="${BATCH_TRANSFER_THREADS:-5}"   # 批量传输线程数
+          BATCH_DOWNLOAD_THREADS="${BATCH_DOWNLOAD_THREADS:-3}"   # 批量下载线程数
+          BATCH_TRANSFER_THREADS="${BATCH_TRANSFER_THREADS:-3}"   # 批量传输线程数
           TABLE_LANGUAGE="${TABLE_LANGUAGE:-en}"      # 表格语言: zh(中文) 或 en(英文)
           USE_EMOJI="${USE_EMOJI:-true}"           # 是否在状态中显示emoji
           FORCE_SYNC="${FORCE_SYNC:-false}"       # 强制同步模式
@@ -115,7 +109,9 @@ jobs:
           
           # 显示配置
           echo "🔧 同步配置:"
+          echo "  📱 云盘类型: 夸克网盘"
           echo "  📁 Release标签: ${TAG_NAME:-'最新版本'}"
+          echo "  📂 目标路径: $TARGET_FOLDER"
           echo "  🔄 强制同步: $FORCE_SYNC"
           echo "  ⚡ 批量下载: $USE_BATCH_DOWNLOAD"
           echo "  📥 下载线程: $BATCH_DOWNLOAD_THREADS"
@@ -125,4 +121,5 @@ jobs:
           echo ""
           
           # 运行同步脚本
-          ./.github/scripts/cloud-sync.sh "$TAG_NAME" "$GITHUB_TOKEN" "$MOBILE_CLOUD_AUTHORIZATION"
+          ./.github/scripts/cloud-sync.sh "$TAG_NAME"
+
