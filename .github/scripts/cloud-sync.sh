@@ -619,14 +619,16 @@ mount_cloud_storage() {
         exit 1
     fi
     
-    # 根据云盘类型构建addition JSON
-    local addition_json
+    # 根据云盘类型构建 addition JSON 字符串
+    local addition_str
     case "$CLOUD_PROVIDER" in
         "quark")
-            addition_json="{\"cookie\":\"${CLOUD_AUTH}\",\"root_folder_id\":\"0\",\"order_by\":\"file_name\",\"order_direction\":\"asc\"}"
+            addition_str=$(jq -n --arg cookie "$CLOUD_AUTH" \
+                '{cookie: $cookie, root_folder_id: "0", order_by: "file_name", order_direction: "asc"}' | jq -c .)
             ;;
         "mobile")
-            addition_json="{\"authorization\":\"${CLOUD_AUTH}\",\"root_folder_id\":\"/\",\"type\":\"personal_new\",\"cloud_id\":\"\",\"custom_upload_part_size\":0,\"report_real_size\":true,\"use_large_thumbnail\":false}"
+            addition_str=$(jq -n --arg auth "$CLOUD_AUTH" \
+                '{authorization: $auth, root_folder_id: "/", type: "personal_new", cloud_id: "", custom_upload_part_size: 0, report_real_size: true, use_large_thumbnail: false}' | jq -c .)
             ;;
         *)
             log_error "不支持的云盘类型: $CLOUD_PROVIDER"
@@ -634,19 +636,18 @@ mount_cloud_storage() {
             ;;
     esac
     
+    # 使用 jq 构建完整的请求 JSON
+    local request_json=$(jq -n \
+        --arg mount_path "$STORAGE_MOUNT_PATH" \
+        --arg driver "$CLOUD_DRIVER" \
+        --arg remark "SkorionOS Release同步 - ${CLOUD_PROVIDER}" \
+        --arg addition "$addition_str" \
+        '{mount_path: $mount_path, driver: $driver, order: 0, remark: $remark, addition: $addition}')
+    
     local mount_response=$(curl -s -w "HTTP_CODE:%{http_code}" -X POST "$ALIST_URL/api/admin/storage/create" \
         -H "Authorization: $alist_token" \
         -H "Content-Type: application/json" \
-        -d @- << EOF
-{
-    "mount_path": "$STORAGE_MOUNT_PATH",
-    "driver": "$CLOUD_DRIVER", 
-    "order": 0,
-    "remark": "SkorionOS Release同步 - ${CLOUD_PROVIDER}",
-    "addition": "${addition_json}"
-}
-EOF
-    )
+        -d "$request_json")
     
     # 分离HTTP状态码和响应体
     local http_code=$(echo "$mount_response" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
