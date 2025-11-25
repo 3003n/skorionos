@@ -39,12 +39,14 @@ case "$CLOUD_PROVIDER" in
         CLOUD_DRIVER="Quark"
         TARGET_FOLDER="${TARGET_FOLDER:-SkorionOS_Github/img}"
         AUTH_FIELD="cookie"
+		_FILE_FILTER_RULES="prefix:skorionos-,contains:-nv"
         ;;
     "mobile")
         STORAGE_MOUNT_PATH="/139Yun"
         CLOUD_DRIVER="139Yun"
         TARGET_FOLDER="${TARGET_FOLDER:-Public/img}"
         AUTH_FIELD="authorization"
+		_FILE_FILTER_RULES="prefix:skorionos-,exclude:contains:hyprland,exclude:contains:cosmic,exclude:contains:cinnamon"
         ;;
     *)
         echo "❌ 不支持的云盘类型: $CLOUD_PROVIDER" >&2
@@ -78,7 +80,7 @@ FORCE_SYNC="${FORCE_SYNC:-false}"       # 强制同步模式
 #   "suffix:.img.xz,size_min:100"               # 下载.img.xz结尾且大于100MB的文件
 #   "contains:kde,exclude:contains:nv"          # 包含kde但不包含nv的文件
 #   "regex:.*-(kde|gnome)\..*"                  # 正则匹配包含kde或gnome的文件
-FILE_FILTER_RULES="prefix:skorionos-,exclude:contains:hyprland,exclude:contains:cosmic,exclude:contains:cinnamon"
+FILE_FILTER_RULES=${_FILE_FILTER_RULES}
 TIMEOUT_SECONDS=1800
 CHECK_INTERVAL=5
 
