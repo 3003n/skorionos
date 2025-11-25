@@ -108,7 +108,6 @@ export PACKAGES="\
 	tar \
 	tree \
 	ttf-liberation \
-	udftools \
 	unrar \
 	unzip \
 	usb_modeswitch \
