@@ -37,14 +37,16 @@ case "$CLOUD_PROVIDER" in
     "quark")
         STORAGE_MOUNT_PATH="/Quark"
         CLOUD_DRIVER="Quark"
-        TARGET_FOLDER="${TARGET_FOLDER:-SkorionOS_Github/img}"
+        TARGET_FOLDER="${TARGET_FOLDER:-img}"
+        ROOT_FOLDER_ID="${ROOT_FOLDER_ID:-25aa15847d044a9bae0bb42be76ee253}"
         AUTH_FIELD="cookie"
-		_FILE_FILTER_RULES="prefix:skorionos-,contains:-nv"
+		_FILE_FILTER_RULES="regex:skorionos.+-nv\..*"
         ;;
     "mobile")
         STORAGE_MOUNT_PATH="/139Yun"
         CLOUD_DRIVER="139Yun"
         TARGET_FOLDER="${TARGET_FOLDER:-Public/img}"
+        ROOT_FOLDER_ID="${ROOT_FOLDER_ID:-/}"
         AUTH_FIELD="authorization"
 		_FILE_FILTER_RULES="prefix:skorionos-,exclude:contains:hyprland,exclude:contains:cosmic,exclude:contains:cinnamon"
         ;;
@@ -625,12 +627,12 @@ mount_cloud_storage() {
     local addition_str
     case "$CLOUD_PROVIDER" in
         "quark")
-            addition_str=$(jq -n --arg cookie "$CLOUD_AUTH" \
-                '{cookie: $cookie, root_folder_id: "0", order_by: "file_name", order_direction: "asc"}' | jq -c .)
+            addition_str=$(jq -n --arg cookie "$CLOUD_AUTH" --arg root_folder_id "$ROOT_FOLDER_ID" \
+                '{cookie: $cookie, root_folder_id: $root_folder_id, order_by: "file_name", order_direction: "asc"}' | jq -c .)
             ;;
         "mobile")
-            addition_str=$(jq -n --arg auth "$CLOUD_AUTH" \
-                '{authorization: $auth, root_folder_id: "/", type: "personal_new", cloud_id: "", custom_upload_part_size: 0, report_real_size: true, use_large_thumbnail: false}' | jq -c .)
+            addition_str=$(jq -n --arg auth "$CLOUD_AUTH" --arg root_folder_id "$ROOT_FOLDER_ID" \
+                '{authorization: $auth, root_folder_id: $root_folder_id, type: "personal_new", cloud_id: "", custom_upload_part_size: 0, report_real_size: true, use_large_thumbnail: false}' | jq -c .)
             ;;
         *)
             log_error "不支持的云盘类型: $CLOUD_PROVIDER"
