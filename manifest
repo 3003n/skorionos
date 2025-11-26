@@ -170,7 +170,6 @@ export AUR_PACKAGES="\
 	pikaur \
 	refind-r \
 	ryzenadj-git \
-	ryzen_smu-dkms-git \
 	sk-boot-to-windows \
 	sk-chos-tool \
 	v4l-utils-git \
