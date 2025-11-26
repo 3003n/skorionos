@@ -74,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLOUD_PROVIDER: "quark"
           CLOUD_AUTH: ${{ secrets.QUARK_COOKIE }}
-          TARGET_FOLDER: "SkorionOS_Github/img"
+          TARGET_FOLDER: "img"
           # 下载模式配置环境变量
           USE_BATCH_DOWNLOAD: ${{ inputs.use_batch_download }}
           BATCH_DOWNLOAD_THREADS: ${{ inputs.download_threads }}
