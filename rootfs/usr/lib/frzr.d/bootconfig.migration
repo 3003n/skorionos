@@ -1,0 +1,76 @@
+# Migrate to bootconfig
+# Apply custom kernel boot options from configuration files
+export DQ_PATH="/usr/share/device-quirks"
+BOOTCONFIG_MANAGER_PATH="$DQ_PATH/scripts/kernel-options-manager"
+CUSTOM_CONFIG_DIR="etc/frzr.d"
+
+post_install() {
+	local MOUNT_PATH=$1
+
+	# Check if kernel-options-manager is available
+	if [ ! -x "$BOOTCONFIG_MANAGER_PATH" ]; then
+		echo "kernel-options-manager not found, skipping bootconfig migration"
+		return 0
+	fi
+
+	# Check if custom config directory exists
+	if [ ! -d "$MOUNT_PATH/$CUSTOM_CONFIG_DIR" ]; then
+		echo "Custom config directory not found: $MOUNT_PATH/$CUSTOM_CONFIG_DIR"
+		return 0
+	fi
+
+	# Find and process all .conf files in sorted order
+	local config_files
+	config_files=$(find "$MOUNT_PATH/$CUSTOM_CONFIG_DIR" -maxdepth 1 -type f -name "*.conf" 2>/dev/null | sort)
+	
+	if [ -z "$config_files" ]; then
+		echo "No custom bootconfig files found in $MOUNT_PATH/$CUSTOM_CONFIG_DIR"
+		return 0
+	fi
+
+	echo "Processing custom kernel boot options..."
+	
+	# Process each config file
+	for config_file in $config_files; do
+		if [ ! -r "$config_file" ]; then
+			echo "Warning: Cannot read $config_file, skipping"
+			continue
+		fi
+
+		echo "Processing: $(basename "$config_file")"
+		
+		# Read each line from the config file
+		while IFS= read -r line || [ -n "$line" ]; do
+			# Skip empty lines and comments
+			line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+			if [ -z "$line" ] || [[ "$line" =~ ^# ]]; then
+				continue
+			fi
+
+			# Parse the line: format is "add OPTION" or "remove OPTION"
+			action=$(echo "$line" | awk '{print $1}')
+			option=$(echo "$line" | cut -d' ' -f2-)
+
+			if [ -z "$option" ]; then
+				echo "Warning: Invalid line in $config_file: $line"
+				continue
+			fi
+
+			case "$action" in
+				add)
+					echo "  Adding kernel option: $option"
+					"$BOOTCONFIG_MANAGER_PATH" --append "$option" || echo "  Warning: Failed to add $option"
+					;;
+				remove)
+					echo "  Removing kernel option: $option"
+					"$BOOTCONFIG_MANAGER_PATH" --remove "$option" || echo "  Warning: Failed to remove $option"
+					;;
+				*)
+					echo "  Warning: Unknown action '$action' in $config_file"
+					;;
+			esac
+		done < "$config_file"
+	done
+
+	echo "Bootconfig migration completed"
+}
