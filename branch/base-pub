@@ -74,6 +74,7 @@ export BASE_PACKAGES="\
 
 export EXTRA_PACKAGES="\
 	antimicrox \
+	chafa \
 	imagemagick \
 	lact-libadwaita \
 	mission-center \
