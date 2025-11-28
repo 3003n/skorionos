@@ -20,7 +20,7 @@ post_install() {
 	fi
 
 	rm -rf ${MOUNT_PATH}/boot/EFI
-	bootctl --esp-path=${MOUNT_PATH}/boot/ install
+	bootctl --esp-path=${MOUNT_PATH}/boot/ install --graceful
 
 	echo "Migration to systemd-boot complete"
 }
