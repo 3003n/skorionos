@@ -210,8 +210,8 @@ export SERVICES="\
 	fstrim.timer \
 	frzr_root-swap-swapfile.swap \
 	haveged \
+	hhd \
 	hostname-fix \
-	inputplumber \
 	networkd-dispatcher \
 	overlay-backgrounds \
 	overlay-fonts \

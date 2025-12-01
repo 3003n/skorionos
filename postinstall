@@ -26,7 +26,7 @@ postinstall_download() {
 	ln -sf "/etc/systemd/system/plugin_loader.service" "/etc/systemd/system/multi-user.target.wants/plugin_loader.service"
 
 	# enable hhd service
-	ln -sf "/usr/lib/systemd/system/hhd@.service" "/etc/systemd/system/multi-user.target.wants/hhd@${USERNAME}.service"
+	# ln -sf "/usr/lib/systemd/system/hhd@.service" "/etc/systemd/system/multi-user.target.wants/hhd@${USERNAME}.service"
 
 	rm -rf $temp_path
 	rm -rf pre-download
