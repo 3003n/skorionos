@@ -112,6 +112,7 @@ export BASE_AUR_PACKAGES="\
 "
 
 export EXTRA_AUR_PACKAGES="\
+	adwsteamgtk \
 	flatseal \
 	moonlight-qt-axi \
 	protonplus \
