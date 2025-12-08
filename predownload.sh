@@ -235,7 +235,7 @@ all_download() {
 	# download_decky_plugin "aarron-lee/LegionGoRemapper" $decky_plugin_path
 
 	# xXJSONDeruloXx/Decky-Framegen
-	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path "Framegen.zip" true
+	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path ".zip" true
 
 	# xXJSONDeruloXx/decky-lsfg-vk
 	# download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
