@@ -58,6 +58,7 @@ export BASE_PACKAGES="\
 	ripgrep \
 	screen \
 	scx-scheds \
+	scx-tools \
 	shfmt \
 	smartmontools \
 	switcheroo-control \
