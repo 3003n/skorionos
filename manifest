@@ -164,7 +164,8 @@ export AUR_PACKAGES="\
 	hhd \
 	hhd-ui \
 	hhfc-git \
-	inputplumber-bin \
+	hid-msi-claw-dkms-git \
+	inputplumber-git \
 	lib32-extest \
 	linux-firmware-valve \
 	nintendo-udev \
