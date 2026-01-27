@@ -87,6 +87,7 @@ export PACKAGES="\
 	nano \
 	networkmanager \
 	nfs-utils \
+	noise-suppression-for-voice \
 	noto-fonts-emoji \
 	nss-mdns \
 	openal \
