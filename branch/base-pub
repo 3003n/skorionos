@@ -133,8 +133,8 @@ export CORE_LOCAL_PACKAGES="\
 	steam-removable-media-git \
 	steamos-manager \
 	steamos-powerbuttond \
-	xonedo-dkms \
-	xonedo-firmware \
+	xonedo-sk-dkms \
+	xone-dongle-firmware \
 "
 export BASE_LOCAL_PACKAGES="\
 	$CORE_LOCAL_PACKAGES \
