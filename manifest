@@ -131,8 +131,8 @@ export PACKAGES="\
 "
 
 export PACKAGE_OVERRIDES_URLS="\
-	https://github.com/SkorionOS/linux-skorion/releases/download/v6.17.7-8/linux-skchos-6.17.7-8-x86_64.pkg.tar.zst \
-	https://github.com/SkorionOS/linux-skorion/releases/download/v6.17.7-8/linux-skchos-headers-6.17.7-8-x86_64.pkg.tar.zst \
+	https://github.com/SkorionOS/linux-skorion/releases/download/v6.17.7-9/linux-skchos-6.17.7-9-x86_64.pkg.tar.zst \
+	https://github.com/SkorionOS/linux-skorion/releases/download/v6.17.7-9/linux-skchos-headers-6.17.7-9-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/lib32-libxkbcommon/lib32-libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon/libxkbcommon-1.11.0-1-x86_64.pkg.tar.zst \
 	https://archive.archlinux.org/packages/l/libxkbcommon-x11/libxkbcommon-x11-1.11.0-1-x86_64.pkg.tar.zst \
