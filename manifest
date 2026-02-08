@@ -213,7 +213,6 @@ export SERVICES="\
 	fstrim.timer \
 	frzr_root-swap-swapfile.swap \
 	haveged \
-	hhd \
 	hostname-fix \
 	networkd-dispatcher \
 	overlay-backgrounds \
