@@ -241,7 +241,7 @@ all_download() {
 	# download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
 
 	# honjow/decky-wine-cellar
-	download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path ".zip"
+	# download_decky_plugin "honjow/decky-wine-cellar" $decky_plugin_path ".zip"
 
 	# honjow/decky-natpierce
 	# download_decky_plugin "honjow/decky-natpierce" $decky_plugin_path ".zip"
