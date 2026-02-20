@@ -372,5 +372,5 @@ postinstallhook() {
 	fi
 
 	# reset frzroot etc
-	touch /.reset-etc
+	# touch /.reset-etc
 }
