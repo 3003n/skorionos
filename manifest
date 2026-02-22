@@ -1,11 +1,11 @@
 #! /bin/bash
 
-export VERSION="54-4"
+export VERSION="55"
 export SYSTEM_DESC="SkorionOS"
 export SYSTEM_NAME="skorionos"
 export USERNAME="gamer"
 export SIZE="40000MB"
-export ARCHIVE_DATE="2026/02/20"
+export ARCHIVE_DATE=$(date -d 'yesterday' +%Y/%m/%d)
 export WEBSITE="https://github.com/SkorionOS/skorionos"
 export DOCUMENTATION_URL="https://github.com/SkorionOS/skorionos"
 export BUG_REPORT_URL="https://github.com/SkorionOS/skorionos/issues"
@@ -14,22 +14,8 @@ export KERNEL_PACKAGE="linux-skchos"
 export KERNEL_PACKAGE_ORIGIN="local"
 
 MESA_PACKAGE="\
-	lib32-mesa \
-	lib32-opencl-mesa \
-	lib32-vulkan-intel \
-	lib32-vulkan-mesa-layers \
-	lib32-vulkan-nouveau \
-	lib32-vulkan-radeon \
-	lib32-vulkan-swrast \
-	lib32-vulkan-virtio \
-	mesa \
-	opencl-mesa \
-	vulkan-intel \
-	vulkan-mesa-layers \
-	vulkan-nouveau \
-	vulkan-radeon \
-	vulkan-swrast \
-	vulkan-virtio \
+	lib32-mesa-git \
+	mesa-git \
 "
 
 export PACKAGES="\
