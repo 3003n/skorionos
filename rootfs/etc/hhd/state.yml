@@ -1,0 +1,22 @@
+controllers:
+  handheld:
+    controller_mode:
+      mode: hori_steam
+      hori_steam:
+        handheld_mode: default
+shortcuts:
+  touchscreen:
+    bottom: disabled
+hhd:
+  settings:
+    language: zh_CN
+    theme: default
+    rgb: false
+    powerbuttond: default
+  http:
+    localhost: default
+    token: default
+rgb:
+  handheld:
+    mode:
+      mode: disabled
