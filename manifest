@@ -252,6 +252,7 @@ export FILES_TO_DELETE="\
 	/usr/share/libalpm/hooks/70-dkms-install.hook \
 	/usr/share/libalpm/hooks/70-dkms-upgrade.hook \
 	/usr/share/libalpm/hooks/71-dkms-remove.hook \
+	/usr/lib/systemd/system/hhd@.service \
 "
 
 postinstallhook() {
