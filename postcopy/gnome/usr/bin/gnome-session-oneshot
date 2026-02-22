@@ -59,17 +59,21 @@ function check_sentinel()
     else
       return 1
     fi
-    rm "$SENTINEL_FILE"
 
   ) || return 1 # If we couldn't read the value or it wasn't what we wanted
 
-  # Found value and removed it, we're good to continue
+  # Found value, we're good to continue
   return 0
 }
 
 if CONFIGURED_CHAINED_SESSION=$(check_sentinel); then
-  # We found and consumed the oneshot sentinel, proceed to launch plasma
-  echo >&2 "$0: Found and removed sentinel file for one-shot desktop, proceeding to launch"
+  echo >&2 "$0: Found sentinel, waiting for GPU to settle..."
+  sleep 2
+
+  config_dir="${XDG_CONF_DIR:-"$HOME/.config"}"
+  rm -f "$config_dir/$SENTINEL_FILE"
+  echo >&2 "$0: Sentinel consumed, launching desktop session"
+
   exec "$CONFIGURED_CHAINED_SESSION"
 else
   if CONFIGURED_RETURN_SESSION=$(check_return); then
