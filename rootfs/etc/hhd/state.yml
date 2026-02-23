@@ -4,6 +4,43 @@ controllers:
       mode: hori_steam
       hori_steam:
         handheld_mode: default
+  legion_go:
+    xinput:
+      controller_mode:
+        mode: hori_steam
+        hori_steam:
+          handheld_mode: default
+  legion_gos:
+    xinput:
+      controller_mode:
+        mode: hori_steam
+        hori_steam:
+          handheld_mode: default
+  rog_ally:
+    controller_mode:
+      mode: hori_steam
+      hori_steam:
+        handheld_mode: default
+  claw:
+    controller_mode:
+      mode: hori_steam
+      hori_steam:
+        handheld_mode: default
+  oxp:
+    controller_mode:
+      mode: hori_steam
+      hori_steam:
+        handheld_mode: default
+  ayaneo:
+    controller_mode:
+      mode: hori_steam
+      hori_steam:
+        handheld_mode: default
+  gpd_win:
+    controller_mode:
+      mode: hori_steam
+      hori_steam:
+        handheld_mode: default
 shortcuts:
   touchscreen:
     bottom: disabled
