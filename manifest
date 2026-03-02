@@ -140,6 +140,8 @@ export PACKAGE_OVERRIDES="\
 export AUR_PACKAGES="\
 	aic8800d80-dkms \
 	ayaneo-platform-dkms-git \
+	ayn-platform-dkms-git \
+	bmi260-dkms \
 	chimeraos-device-quirks-sk \
 	downgrade \
 	evdev-keepalive \
