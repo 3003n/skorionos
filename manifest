@@ -375,7 +375,7 @@ postinstallhook() {
 	fi
 
 	# reset frzroot etc
-	if [[ "${VERSION}" =~ (55|54-[4-5]) ]]; then
+	if [[ "${VERSION}" =~ ^(55|54-[4-5])$ ]]; then
 		touch /.reset-etc
 	fi
 }
