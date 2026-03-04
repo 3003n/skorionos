@@ -176,6 +176,7 @@ export AUR_PACKAGES="\
 	ryzenadj-git \
 	sk-boot-to-windows \
 	sk-chos-tool \
+	uu-uuid-persist \
 	v4l-utils-git \
 	yay-git \
 	zenergy-dkms-git \
