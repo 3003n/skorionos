@@ -222,20 +222,20 @@ all_download() {
 	# decky-sk-box
 	download_decky_plugin "honjow/decky-sk-box" $decky_plugin_path
 
-	# aarron-lee/DeckyPlumber
-	download_decky_plugin "aarron-lee/DeckyPlumber" $decky_plugin_path
+	# aarron-lee/DeckyPlumber -> honjow/DeckyPlumber
+	download_decky_plugin "honjow/DeckyPlumber" $decky_plugin_path
 
 	# honjow/decky-terminal
 	download_decky_plugin "honjow/decky-terminal" $decky_plugin_path
 
 	# CheatDeck
-	download_decky_plugin "SheffeyG/CheatDeck" $decky_plugin_path ".zip"
+	# download_decky_plugin "SheffeyG/CheatDeck" $decky_plugin_path ".zip"
 
 	# aarron-lee/LegionGoRemapper
 	# download_decky_plugin "aarron-lee/LegionGoRemapper" $decky_plugin_path
 
 	# xXJSONDeruloXx/Decky-Framegen
-	download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path ".zip" true
+	# download_decky_plugin "xXJSONDeruloXx/Decky-Framegen" $decky_plugin_path ".zip" true
 
 	# xXJSONDeruloXx/decky-lsfg-vk
 	# download_decky_plugin "xXJSONDeruloXx/decky-lsfg-vk" $decky_plugin_path ".zip" true
@@ -253,7 +253,7 @@ all_download() {
 	# download_decky_plugin "honjow/MangoPeel" $decky_plugin_path ".zip"
 
 	# GedasFX/decky-ludusavi
-	download_decky_plugin "GedasFX/decky-ludusavi" $decky_plugin_path ".zip"
+	# download_decky_plugin "GedasFX/decky-ludusavi" $decky_plugin_path ".zip"
 
 	# pre download css themes
 
