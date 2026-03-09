@@ -38,6 +38,7 @@ export BASE_KDE_PACKAGES="\
 	plasma-thunderbolt \
 	plasma-vault \
 	python-notify2 \
+	qmlkonsole \
 	spectacle \
 	xdg-desktop-portal-gtk \
 	xdg-desktop-portal-kde \
