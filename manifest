@@ -158,6 +158,7 @@ export AUR_PACKAGES="\
 	downgrade \
 	evdev-keepalive \
 	frzr-sk \
+	game-devices-udev \
 	gamescope-session-sk-git \
 	gamescope-session-steam-sk-git \
 	gamescope-session-opengamepadui-git \
