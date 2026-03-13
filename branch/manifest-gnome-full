@@ -26,6 +26,9 @@ export SUB_AUR_PACKAGES="\
 	linuxqq \
 	microsoft-edge-stable-bin \
 	qqmusic-bin \
+	thermalright-trcc \
+	wechat-universal-bwrap \
+	ventoy-bin \
 "
 
 export SUB_LOCAL_PACKAGES="\
