@@ -212,6 +212,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
           TARGET_TAG: ${{ needs.build-system-image.outputs.version }}
           DELTA_DEPTH: ${{ vars.DELTA_DEPTH || '1' }}
+          STABLE_DEPTH: ${{ vars.STABLE_DEPTH || '1' }}
         run: bash .github/scripts/find-delta-bases.sh
 
   generate-delta:

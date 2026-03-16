@@ -9,17 +9,23 @@
 #   - UNSTABLE 通道: release name 包含 [UNSTABLE]，只在 UNSTABLE 之间做增量
 #   - 稳定/测试通道: release name 不含 [UNSTABLE]，两者之间可互相做增量
 #
+# 稳定版额外深度:
+#   对非 UNSTABLE 通道，除了通用 DELTA_DEPTH 外，还通过 STABLE_DEPTH 确保
+#   覆盖最近 N 个稳定版 (prerelease=false)，即使中间有多个测试版也不遗漏。
+#
 # 环境变量:
 #   GITHUB_TOKEN   - GitHub API token (必需)
 #   TARGET_TAG     - 当前要生成增量的 release tag (必需)
 #   REPO           - GitHub 仓库，格式 owner/repo (默认: GITHUB_REPOSITORY)
 #   DELTA_DEPTH    - 向前查找的版本深度 (默认: 1)
+#   STABLE_DEPTH   - 额外查找的稳定版深度，仅非 UNSTABLE 通道生效 (默认: 1)
 
 set -euo pipefail
 
 REPO="${REPO:-${GITHUB_REPOSITORY:-SkorionOS/skorionos}}"
 TARGET_TAG="${TARGET_TAG:?TARGET_TAG is required}"
 DELTA_DEPTH="${DELTA_DEPTH:-1}"
+STABLE_DEPTH="${STABLE_DEPTH:-1}"
 API_BASE="https://api.github.com"
 
 auth_header=()
@@ -27,7 +33,7 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
     auth_header=(-H "Authorization: token $GITHUB_TOKEN")
 fi
 
-echo "Finding delta bases for $TARGET_TAG (depth=$DELTA_DEPTH) in $REPO" >&2
+echo "Finding delta bases for $TARGET_TAG (depth=$DELTA_DEPTH, stable_depth=$STABLE_DEPTH) in $REPO" >&2
 
 # 获取 releases 并按 created_at 降序排列（API 返回顺序不可靠，必须显式排序）
 releases=$(curl -s "${auth_header[@]}" \
@@ -84,9 +90,15 @@ matrix_entries=()
 
 for branch in $target_branches; do
     found=0
+    found_stable=0
+    # 非 UNSTABLE 通道需要同时满足通用深度和稳定版深度
+    need_stable=$( [ "$target_is_unstable" = false ] && echo "$STABLE_DEPTH" || echo "0" )
 
     # 遍历 releases（已按时间降序排列，跳过目标版本自身）
     while IFS= read -r rel; do
+        # 两个深度条件都已满足则停止
+        [ "$found" -ge "$DELTA_DEPTH" ] && [ "$found_stable" -ge "$need_stable" ] && break
+
         tag=$(echo "$rel" | jq -r '.tag_name')
         [ "$tag" = "$TARGET_TAG" ] && continue
 
@@ -114,11 +126,22 @@ for branch in $target_branches; do
             '[.assets[].name | select(test("^skorionos-.*-" + $b + "\\.(skosys|part1-[0-9]+\\.skosys)$"))] | length')
 
         if [ "$has_branch" -gt 0 ]; then
-            found=$((found + 1))
-            echo "  Found base: $tag (branch=$branch)" >&2
-            matrix_entries+=("{\"base_tag\":\"$tag\",\"branch\":\"$branch\"}")
+            rel_prerelease=$(echo "$rel" | jq -r '.prerelease')
+            is_stable=$( [ "$rel_prerelease" = "false" ] && echo true || echo false )
 
-            [ "$found" -ge "$DELTA_DEPTH" ] && break
+            # 跳过已满足通用深度且当前非稳定版的情况（只继续为了找稳定版）
+            if [ "$found" -ge "$DELTA_DEPTH" ] && [ "$is_stable" = false ]; then
+                continue
+            fi
+
+            found=$((found + 1))
+            [ "$is_stable" = true ] && found_stable=$((found_stable + 1))
+
+            label="$tag (branch=$branch"
+            [ "$is_stable" = true ] && label="$label, stable"
+            label="$label)"
+            echo "  Found base: $label" >&2
+            matrix_entries+=("{\"base_tag\":\"$tag\",\"branch\":\"$branch\"}")
         fi
     done < <(echo "$releases" | jq -c '.[]')
 done
