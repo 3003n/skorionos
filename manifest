@@ -177,6 +177,7 @@ export AUR_PACKAGES="\
 	ryzenadj-git \
 	sk-boot-to-windows \
 	sk-chos-tool \
+	udev-joystick-blacklist-git \
 	uu-uuid-persist \
 	v4l-utils-git \
 	yay-git \
