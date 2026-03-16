@@ -149,20 +149,41 @@ jobs:
           echo "Split done, listing output/"
           ls -lh output/
 
-      - name: Create release
-        id: create_release
-        uses: softprops/action-gh-release@v2
+      # - name: Create release
+      #   id: create_release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     token: ${{ secrets.PAT_SK_API_INFO }}
+      #     tag_name: ${{ needs.build-system-image.outputs.version }}
+      #     target_commitish: ${{ github.sha }}
+      #     name: ${{ needs.build-system-image.outputs.display_name }} ${{ needs.build-system-image.outputs.display_version }} ${{ inputs.postfix }}
+      #     draft: false
+      #     prerelease: true
+      #     preserve_order: true
+      #     fail_on_unmatched_files: true
+      #     files: |
+      #       output/skorionos*
+      #       output/build_info*.txt
+      #       output/sha256sum*.txt
+      #       output/container*.txt
+
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_SK_API_INFO }}
-          tag_name: ${{ needs.build-system-image.outputs.version }}
-          target_commitish: ${{ github.sha }}
-          name: ${{ needs.build-system-image.outputs.display_name }} ${{ needs.build-system-image.outputs.display_version }} ${{ inputs.postfix }}
-          draft: false
-          prerelease: true
-          preserve_order: true
-          fail_on_unmatched_files: true
-          files: |
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+          path: _repo
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          RELEASE_TAG_NAME: ${{ needs.build-system-image.outputs.version }}
+          RELEASE_TARGET_COMMITISH: ${{ github.sha }}
+          RELEASE_NAME: "${{ needs.build-system-image.outputs.display_name }} ${{ needs.build-system-image.outputs.display_version }} ${{ inputs.postfix }}"
+          RELEASE_PRERELEASE: "true"
+          UPLOAD_CONCURRENCY: "${{ vars.UPLOAD_CONCURRENCY }}"
+          RELEASE_FILES: |
             output/skorionos*
             output/build_info*.txt
             output/sha256sum*.txt
             output/container*.txt
+        run: python3 _repo/.github/scripts/release-upload.py
