@@ -21,7 +21,7 @@ Optional:
   --base-name NAME     Base subvolume name (auto-derived from filename)
   --base-tag TAG       Base version release tag (auto-derived from version)
   --max-ratio PCT      Max delta/full size ratio percentage (default: 70)
-  --work-size SIZE     Temp btrfs image size (default: 25G)
+  --work-size SIZE     Temp btrfs image size (default: auto-calculated)
 EOF
     exit 1
 }
@@ -39,7 +39,8 @@ BASE_NAME=""
 BASE_TAG=""
 MAX_RATIO=70
 OUTPUT_DIR=""
-WORK_SIZE="25G"
+WORK_SIZE=""
+WORK_SIZE_SET=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -50,7 +51,7 @@ while [[ $# -gt 0 ]]; do
         --base-tag)    BASE_TAG="$2";    shift 2 ;;
         --max-ratio)   MAX_RATIO="$2";   shift 2 ;;
         --output-dir)  OUTPUT_DIR="$2";  shift 2 ;;
-        --work-size)   WORK_SIZE="$2";   shift 2 ;;
+        --work-size)   WORK_SIZE="$2"; WORK_SIZE_SET=true; shift 2 ;;
         -h|--help)     usage ;;
         *) echo "Unknown option: $1" >&2; usage ;;
     esac
@@ -94,9 +95,25 @@ echo "  Output: $DELTA_FILENAME"
 
 mkdir -p "$OUTPUT_DIR"
 
-# --- 创建临时 btrfs 工作文件系统 ---
+# 在删除源文件前记录全量镜像大小（后续阈值检查需要）
+FULL_SIZE=$(stat -c %s "$TARGET_IMG")
+
+# --- 动态计算或使用指定的工作文件系统大小 ---
 WORK_DIR=$(mktemp -d /tmp/delta-work-XXXX)
 WORK_IMG=$(mktemp /tmp/delta-img-XXXX.img)
+
+if [ "$WORK_SIZE_SET" = false ]; then
+    AVAIL_KB=$(df --output=avail "$(dirname "$WORK_IMG")" | tail -1 | tr -d ' ')
+    AVAIL_GB=$((AVAIL_KB / 1024 / 1024))
+    # 预留 5G 给 rsync batch 输出、xz 压缩和系统开销
+    WORK_SIZE_GB=$((AVAIL_GB - 5))
+    if [ "$WORK_SIZE_GB" -lt 15 ]; then
+        echo "Error: insufficient disk space (available: ${AVAIL_GB}G, need at least 20G)" >&2
+        exit 1
+    fi
+    WORK_SIZE="${WORK_SIZE_GB}G"
+    echo "Auto-calculated work filesystem size: $WORK_SIZE (available: ${AVAIL_GB}G)"
+fi
 
 cleanup() {
     echo "Cleaning up work filesystem..."
@@ -115,9 +132,14 @@ mount -t btrfs -o loop,nodatacow "$WORK_IMG" "$WORK_DIR"
 # --- 还原两个版本的 btrfs 快照 ---
 echo "Restoring target: $TARGET_NAME ..."
 xz -dc "$TARGET_IMG" | btrfs receive --quiet "$WORK_DIR"
+# 释放源文件以腾出磁盘空间给后续操作
+echo "Freeing source image: $(basename "$TARGET_IMG")"
+rm -f "$TARGET_IMG"
 
 echo "Restoring base: $BASE_NAME ..."
 xz -dc "$BASE_IMG" | btrfs receive --quiet "$WORK_DIR"
+echo "Freeing source image: $(basename "$BASE_IMG")"
+rm -f "$BASE_IMG"
 
 if [ ! -d "$WORK_DIR/$TARGET_NAME" ]; then
     echo "Error: target subvolume not found after btrfs receive" >&2
@@ -152,7 +174,7 @@ rm -f "$DELTA_BATCH"
 
 # --- 增量包大小阈值检查（超过全量镜像指定比例则跳过） ---
 DELTA_SIZE=$(stat -c %s "$DELTA_FILE")
-FULL_SIZE=$(stat -c %s "$TARGET_IMG")
+# FULL_SIZE 已在脚本开头（删除源文件前）通过 stat 获取
 RATIO=$((DELTA_SIZE * 100 / FULL_SIZE))
 
 echo "Delta size: $(numfmt --to=iec "$DELTA_SIZE") ($RATIO% of full image)"
