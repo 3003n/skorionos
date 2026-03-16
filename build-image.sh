@@ -205,7 +205,7 @@ else
 fi
 
 # 分割文件 GiB
-SPLIT_SIZE_GiB=1.0
+SPLIT_SIZE_GiB=0.5
 
 # 整数MB (使用 awk 计算，避免依赖 bc)
 SPLIT_SIZE_MiB=$(awk "BEGIN {printf \"%d\", ${SPLIT_SIZE_GiB} * 1024}")
