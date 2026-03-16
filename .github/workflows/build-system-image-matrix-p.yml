@@ -159,6 +159,7 @@ jobs:
           name: ${{ needs.build-system-image.outputs.display_name }} ${{ needs.build-system-image.outputs.display_version }} ${{ inputs.postfix }}
           draft: false
           prerelease: true
+          preserve_order: true
           fail_on_unmatched_files: true
           files: |
             output/skorionos*
