@@ -11,3 +11,4 @@ rootfs/etc/makepkg.conf
 test_*.sh
 
 pre-download
+doc

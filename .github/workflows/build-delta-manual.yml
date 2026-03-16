@@ -1,0 +1,203 @@
+name: Build Delta (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_tag:
+        description: "Target version tag (delta will be uploaded to this release)"
+        required: true
+        type: string
+      base_tag:
+        description: "Base version tag (delta starting point)"
+        required: true
+        type: string
+      branches:
+        description: "Desktop branches, comma-separated (empty = auto-detect shared branches)"
+        required: false
+        type: string
+        default: ""
+      max_delta_ratio:
+        description: "Max delta/full size ratio %"
+        required: false
+        type: string
+        default: "70"
+      sync_to_cloud:
+        description: "Trigger cloud sync after publish"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  list-branches:
+    name: List branches
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has_branches: ${{ steps.detect.outputs.has_branches }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+      - id: detect
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ inputs.target_tag }}
+          BASE_TAG: ${{ inputs.base_tag }}
+          MANUAL_BRANCHES: ${{ inputs.branches }}
+        run: bash .github/scripts/detect-delta-branches.sh
+
+  generate-delta:
+    name: Delta ${{ matrix.branch }}
+    needs: list-branches
+    if: needs.list-branches.outputs.has_branches == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.list-branches.outputs.matrix) }}
+    steps:
+      - name: Free Disk Space
+        uses: endersonmenezes/free-disk-space@v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
+          remove_packages: "azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox postgresql* temurin-* *llvm* mysql* dotnet-sdk-*"
+          remove_packages_one_command: true
+          remove_folders: "/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle"
+          rm_cmd: "rmz"
+          rmz_version: "3.1.1"
+          testing: false
+
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            build-delta.sh
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Download target and base images
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ inputs.target_tag }}
+          BASE_TAG: ${{ matrix.base_tag }}
+          BRANCH: ${{ matrix.branch }}
+        run: |
+          mkdir -p images
+          TARGET_IMG=$(bash .github/scripts/download-release-image.sh "$TARGET_TAG" "$BRANCH" images)
+          echo "TARGET_IMG=$TARGET_IMG" >> "$GITHUB_ENV"
+          BASE_IMG=$(bash .github/scripts/download-release-image.sh "$BASE_TAG" "$BRANCH" images)
+          echo "BASE_IMG=$BASE_IMG" >> "$GITHUB_ENV"
+          ls -lh images/
+
+      - name: Generate delta
+        env:
+          BASE_TAG: ${{ matrix.base_tag }}
+          MAX_DELTA_RATIO: ${{ inputs.max_delta_ratio }}
+        run: |
+          mkdir -p output
+          sudo bash build-delta.sh \
+            --target-img "$TARGET_IMG" \
+            --base-img "$BASE_IMG" \
+            --base-tag "$BASE_TAG" \
+            --max-ratio "$MAX_DELTA_RATIO" \
+            --output-dir output/
+          sudo chown -R "$(id -u):$(id -g)" output/
+          cat output/delta-status.txt
+
+      - name: Upload delta artifact
+        if: hashFiles('output/delta-status.txt') != '' && hashFiles('output/*.skdelta') != ''
+        uses: actions/upload-artifact@v5
+        with:
+          name: Delta-${{ matrix.branch }}-from-${{ matrix.base_tag }}
+          path: |
+            output/*.skdelta
+            output/delta-entry.json
+            output/delta-sha256sum.txt
+            output/delta-status.txt
+          compression-level: 0
+          overwrite: true
+
+  publish-delta:
+    name: Publish deltas
+    needs: [list-branches, generate-delta]
+    if: always() && needs.generate-delta.result != 'cancelled'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+          path: _repo
+
+      - name: Download all delta artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: Delta-*
+          path: deltas/
+
+      - name: Merge manifests and split
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ inputs.target_tag }}
+          DELTAS_DIR: deltas
+          OUTPUT_DIR: output
+          SPLIT_SIZE_GIB: "1.9"
+        run: bash _repo/.github/scripts/publish-delta.sh
+
+      - name: Delete old delta assets
+        if: env.has_deltas == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ inputs.target_tag }}
+        run: |
+          existing_assets=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TARGET_TAG}" \
+            --jq '.assets[] | select(.name | test("\\.(skdelta)$") or test("^delta-manifest-")) | .id' 2>/dev/null || true)
+          for asset_id in $existing_assets; do
+            echo "Deleting old asset: $asset_id"
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}" 2>/dev/null || true
+          done
+
+      - name: Upload deltas to release
+        if: env.has_deltas == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          RELEASE_TAG_NAME: ${{ inputs.target_tag }}
+          RELEASE_PRERELEASE: "true"
+          UPLOAD_CONCURRENCY: "${{ vars.UPLOAD_CONCURRENCY }}"
+          RELEASE_FILES: |
+            output/*.skdelta
+            output/delta-manifest-*.json
+        run: python3 _repo/.github/scripts/release-upload.py
+
+      - name: Trigger sk-api-info sync
+        if: env.has_deltas == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ inputs.target_tag }}
+        run: |
+          gh workflow run sync-skorionos.yml \
+            -R honjow/sk-api-info \
+            -f specific_tag="$TARGET_TAG" \
+            -f force_resync=true || echo "Warning: failed to trigger sk-api-info sync"
+
+      - name: Trigger cloud sync
+        if: env.has_deltas == 'true' && inputs.sync_to_cloud
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ inputs.target_tag }}
+        run: |
+          gh workflow run sync-to-mobile-cloud.yml \
+            -R "${GITHUB_REPOSITORY}" \
+            -f tag_name="$TARGET_TAG" || echo "Warning: failed to trigger mobile cloud sync"
+          gh workflow run sync-to-quark-cloud.yml \
+            -R "${GITHUB_REPOSITORY}" \
+            -f tag_name="$TARGET_TAG" || echo "Warning: failed to trigger quark cloud sync"
