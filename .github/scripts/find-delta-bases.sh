@@ -5,6 +5,10 @@
 # 为每个桌面分支找到最近 N 个包含该分支镜像的历史 release，
 # 输出 {base_tag, branch} 的 matrix 组合供并行增量生成使用。
 #
+# 通道隔离规则:
+#   - UNSTABLE 通道: release name 包含 [UNSTABLE]，只在 UNSTABLE 之间做增量
+#   - 稳定/测试通道: release name 不含 [UNSTABLE]，两者之间可互相做增量
+#
 # 环境变量:
 #   GITHUB_TOKEN   - GitHub API token (必需)
 #   TARGET_TAG     - 当前要生成增量的 release tag (必需)
@@ -37,7 +41,7 @@ if [ -z "$releases" ] || [ "$releases" = "null" ]; then
     exit 0
 fi
 
-# 获取目标 release 以确定可用的桌面分支
+# 获取目标 release 以确定可用的桌面分支和通道
 target_release=$(echo "$releases" | jq --arg tag "$TARGET_TAG" \
     '.[] | select(.tag_name == $tag)')
 
@@ -47,6 +51,18 @@ if [ -z "$target_release" ] || [ "$target_release" = "null" ]; then
     echo "has_bases=false" >> "$GITHUB_OUTPUT"
     exit 0
 fi
+
+# 判断目标版本所属通道: UNSTABLE 或 稳定/测试
+target_name=$(echo "$target_release" | jq -r '.name // ""')
+target_is_unstable=false
+if echo "$target_name" | grep -qi '\[UNSTABLE\]'; then
+    target_is_unstable=true
+fi
+echo "Target channel: $([ "$target_is_unstable" = true ] && echo "UNSTABLE" || echo "stable/testing")" >&2
+
+# 从 tag 中提取主版本号 (如 55-1_abc -> 55)，用于防止向更大版本号查找
+target_major=$(echo "$TARGET_TAG" | grep -oP '^\d+' || true)
+echo "Target major version: ${target_major:-unknown}" >&2
 
 # 从资产文件名中提取桌面分支名 (如 skorionos-55-1_abc-gnome.skosys -> gnome)
 target_branches=$(echo "$target_release" | jq -r \
@@ -72,8 +88,26 @@ for branch in $target_branches; do
     # 遍历 releases（已按时间降序排列，跳过目标版本自身）
     while IFS= read -r rel; do
         tag=$(echo "$rel" | jq -r '.tag_name')
-
         [ "$tag" = "$TARGET_TAG" ] && continue
+
+        # 通道隔离: 检查候选 release 是否与目标同通道
+        rel_name=$(echo "$rel" | jq -r '.name // ""')
+        rel_is_unstable=false
+        if echo "$rel_name" | grep -qi '\[UNSTABLE\]'; then
+            rel_is_unstable=true
+        fi
+
+        if [ "$target_is_unstable" != "$rel_is_unstable" ]; then
+            continue
+        fi
+
+        # 版本号方向检查: 只查找主版本号 <= 目标的 release
+        if [ -n "$target_major" ]; then
+            rel_major=$(echo "$tag" | grep -oP '^\d+' || true)
+            if [ -n "$rel_major" ] && [ "$rel_major" -gt "$target_major" ]; then
+                continue
+            fi
+        fi
 
         # 检查该 release 是否包含此分支的 .skosys 镜像
         has_branch=$(echo "$rel" | jq -r --arg b "$branch" \
