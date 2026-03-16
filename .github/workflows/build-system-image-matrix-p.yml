@@ -151,6 +151,23 @@ jobs:
             done
             rm "${IMG_FILENAME}"
           done
+
+          # Recalculate sha256sum files to match actual published files (split parts)
+          cd output
+          for sum_file in sha256sum-*.txt; do
+            [ -f "$sum_file" ] || continue
+            branch="${sum_file#sha256sum-}"
+            branch="${branch%.txt}"
+            : > "$sum_file"
+            for img in skorionos-*"-${branch}.skosys" skorionos-*"-${branch}.part"*".skosys"; do
+              [ -f "$img" ] || continue
+              sha256sum "$img" >> "$sum_file"
+            done
+            echo "Recalculated $sum_file:"
+            cat "$sum_file"
+          done
+          cd ..
+
           echo "Split done, listing output/"
           ls -lh output/
 
