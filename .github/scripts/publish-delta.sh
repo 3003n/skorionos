@@ -30,6 +30,7 @@ mkdir -p "$OUTPUT_DIR"
 # ── 按桌面分支收集成功的 delta 条目 ──
 
 declare -A branch_entries
+has_entries=false
 
 for status_file in "${DELTAS_DIR}"/*/delta-status.txt; do
     [ -f "$status_file" ] || continue
@@ -51,9 +52,10 @@ for status_file in "${DELTAS_DIR}"/*/delta-status.txt; do
     fi
 
     branch_entries[$branch]="${branch_entries[$branch]:-}$(cat "$entry_file"),"
+    has_entries=true
 done
 
-if [ ${#branch_entries[@]} -eq 0 ]; then
+if [ "$has_entries" = false ]; then
     echo "No successful deltas to publish"
     echo "has_deltas=false" >> "$GITHUB_ENV"
     exit 0
