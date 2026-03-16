@@ -204,27 +204,6 @@ else
 	btrfs send -f ${IMG_FILENAME} ${SNAP_PATH}
 fi
 
-# 分割文件 GiB
-SPLIT_SIZE_GiB=0.5
-
-# 整数MB (使用 awk 计算，避免依赖 bc)
-SPLIT_SIZE_MiB=$(awk "BEGIN {printf \"%d\", ${SPLIT_SIZE_GiB} * 1024}")
-SPLIT_BYTES=$((SPLIT_SIZE_MiB * 1024 * 1024))
-FILE_SIZE=$(stat -c %s ${IMG_FILENAME})
-
-if [ ${FILE_SIZE} -gt ${SPLIT_BYTES} ]; then
-	total_parts=$(((FILE_SIZE + SPLIT_BYTES - 1) / SPLIT_BYTES))
-	img_ext=${IMG_FILENAME#"${IMG_FILENAME_WITHOUT_EXT}"}
-
-	# 临时分割文件（生成 .part000, .part001, ...）
-	split -b ${SPLIT_SIZE_MiB}MiB -d -a 3 ${IMG_FILENAME} ${IMG_FILENAME_WITHOUT_EXT}.part
-	# 重命名为最终格式（.part1-3.tar.xz）
-	for i in $(seq 1 $total_parts); do
-		part_num=$(printf "%03d" $((i - 1)))
-		mv "${IMG_FILENAME_WITHOUT_EXT}.part${part_num}" "${IMG_FILENAME_WITHOUT_EXT}.part${i}-${total_parts}${img_ext}"
-	done
-	rm ${IMG_FILENAME}
-fi
 
 cp ${BUILD_PATH}/build_info build_info-${BUILD_BRANCH}.txt
 

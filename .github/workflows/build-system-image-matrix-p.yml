@@ -120,6 +120,35 @@ jobs:
           merge-multiple: true
           path: output/
 
+      - name: Split image files
+        run: |
+          SPLIT_SIZE_GiB="${{ vars.SPLIT_SIZE_GIB }}"
+          SPLIT_SIZE_GiB="${SPLIT_SIZE_GiB:-1.9}"
+          SPLIT_SIZE_MiB=$(awk "BEGIN {printf \"%d\", ${SPLIT_SIZE_GiB} * 1024}")
+          SPLIT_BYTES=$((SPLIT_SIZE_MiB * 1024 * 1024))
+          echo "Split size: ${SPLIT_SIZE_GiB} GiB (${SPLIT_SIZE_MiB} MiB)"
+
+          for IMG_FILENAME in output/skorionos*.skosys; do
+            [ -f "${IMG_FILENAME}" ] || continue
+            FILE_SIZE=$(stat -c %s "${IMG_FILENAME}")
+            if [ "${FILE_SIZE}" -le "${SPLIT_BYTES}" ]; then
+              echo "${IMG_FILENAME}: ${FILE_SIZE} bytes, no split needed"
+              continue
+            fi
+            IMG_FILENAME_WITHOUT_EXT="${IMG_FILENAME%.skosys}"
+            img_ext=".skosys"
+            total_parts=$(((FILE_SIZE + SPLIT_BYTES - 1) / SPLIT_BYTES))
+            echo "${IMG_FILENAME}: splitting into ${total_parts} parts"
+            split -b ${SPLIT_SIZE_MiB}MiB -d -a 3 "${IMG_FILENAME}" "${IMG_FILENAME_WITHOUT_EXT}.part"
+            for i in $(seq 1 $total_parts); do
+              part_num=$(printf "%03d" $((i - 1)))
+              mv "${IMG_FILENAME_WITHOUT_EXT}.part${part_num}" "${IMG_FILENAME_WITHOUT_EXT}.part${i}-${total_parts}${img_ext}"
+            done
+            rm "${IMG_FILENAME}"
+          done
+          echo "Split done, listing output/"
+          ls -lh output/
+
       - name: Create release
         id: create_release
         uses: softprops/action-gh-release@v2
