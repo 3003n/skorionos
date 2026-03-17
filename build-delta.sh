@@ -3,7 +3,7 @@
 # 供自动和手动增量工作流共用
 #
 # 输入:  两个 .skosys 文件 (btrfs send 流经 xz 压缩)
-# 输出:  .skdelta 文件 (rsync batch 经 xz 压缩)、manifest 片段、sha256sum
+# 输出:  .skdelta 文件 (tar 差异包经 xz 压缩)、manifest 片段、sha256sum
 
 set -euo pipefail
 
@@ -161,26 +161,74 @@ TARGET_META_HASH=$(cd "$WORK_DIR/$TARGET_NAME" && find . -not -path './proc/*' -
     -printf '%P\t%s\t%m\t%U\t%G\t%y\n' 2>/dev/null | LC_ALL=C sort | sha256sum | awk '{print $1}')
 echo "Target metadata hash: $TARGET_META_HASH"
 
-# --- 生成 rsync 差异批处理文件 ---
-DELTA_BATCH="$OUTPUT_DIR/delta-batch"
+# --- 生成 tar 差异包 ---
+# rsync 3.4.1 的 read-batch 有 bug，改用 tar 差异包方案：
+# 1. rsync dry-run 找出变更/删除文件
+# 2. tar 打包变更文件 + 删除清单
+DELTA_STAGING="$OUTPUT_DIR/delta-staging"
+mkdir -p "$DELTA_STAGING"
 
-echo "Generating rsync batch diff..."
-# -rlptDH instead of -aAXH: rsync 3.4.1 has a read-batch segfault bug
-# triggered by -g (group), -o (owner), -A (ACL), -X (xattr).
-# --no-inc-recursive: inc-recursive batch files are rejected by read-batch.
-rsync --only-write-batch="$DELTA_BATCH" \
-    -rlptDH --delete --no-inc-recursive \
-    "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/"
+echo "Comparing target and base subvolumes..."
+CHANGES_FILE="$DELTA_STAGING/changes.txt"
+DELETIONS_FILE="$DELTA_STAGING/.delta-deletions"
+MODIFIED_FILE="$DELTA_STAGING/modified.txt"
 
-# rsync 会额外生成一个 .sh 辅助脚本，不需要
-rm -f "${DELTA_BATCH}.sh"
+rsync -aAXH --delete --dry-run --itemize-changes \
+    "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/" 2>/dev/null \
+    | grep -v '^\.' > "$CHANGES_FILE" || true
 
-# --- 使用 xz 压缩增量数据 ---
+true > "$DELETIONS_FILE"
+true > "$MODIFIED_FILE"
+
+while IFS= read -r line; do
+    change_type="${line:0:1}"
+    # itemize-changes format: YXcstpoguax path
+    file_path=$(echo "$line" | sed 's/^[^ ]* //')
+    [ -z "$file_path" ] && continue
+
+    if [ "$change_type" = "*" ]; then
+        # *deleting - file exists in base but not in target
+        del_path=$(echo "$line" | sed 's/^\*deleting   //')
+        [ -n "$del_path" ] && echo "$del_path" >> "$DELETIONS_FILE"
+    else
+        # new/modified file - <, >, c, h, etc.
+        echo "$file_path" >> "$MODIFIED_FILE"
+    fi
+done < "$CHANGES_FILE"
+
+MOD_COUNT=$(wc -l < "$MODIFIED_FILE" | tr -d ' ')
+DEL_COUNT=$(wc -l < "$DELETIONS_FILE" | tr -d ' ')
+echo "  Modified/new files: $MOD_COUNT"
+echo "  Deleted files: $DEL_COUNT"
+
+if [ "$MOD_COUNT" -eq 0 ] && [ "$DEL_COUNT" -eq 0 ]; then
+    echo "No differences found between versions, skipping"
+    echo "SKIP" > "$OUTPUT_DIR/delta-status.txt"
+    rm -rf "$DELTA_STAGING"
+    exit 0
+fi
+
+echo "Creating delta tar package..."
+DELTA_TAR="$OUTPUT_DIR/delta.tar"
+
+# Pack the deletions list first
+tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions
+
+# Append modified/new files from target subvolume
+if [ "$MOD_COUNT" -gt 0 ]; then
+    tar rf "$DELTA_TAR" -C "$WORK_DIR/$TARGET_NAME" \
+        --xattrs --acls --numeric-owner \
+        -T "$MODIFIED_FILE"
+fi
+
+rm -rf "$DELTA_STAGING"
+
+# --- xz 压缩 ---
 DELTA_FILE="$OUTPUT_DIR/$DELTA_FILENAME"
 
 echo "Compressing delta with xz..."
-xz -7 -T0 < "$DELTA_BATCH" > "$DELTA_FILE"
-rm -f "$DELTA_BATCH"
+xz -7 -T0 < "$DELTA_TAR" > "$DELTA_FILE"
+rm -f "$DELTA_TAR"
 
 # --- 增量包大小阈值检查（超过全量镜像指定比例则跳过） ---
 DELTA_SIZE=$(stat -c %s "$DELTA_FILE")
