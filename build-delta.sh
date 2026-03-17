@@ -185,7 +185,7 @@ FILELIST_FILE="$DELTA_STAGING/.delta-filelist"
     -not -path './tmp/*' -not -path './run/*' \
     -not -type s \
     -printf '%P\n' 2>/dev/null \
-    | LC_ALL=C sort > "$FILELIST_FILE")
+    | LC_ALL=C sort) > "$FILELIST_FILE"
 FILELIST_COUNT=$(wc -l < "$FILELIST_FILE" | tr -d ' ')
 echo "Target file list: $FILELIST_COUNT entries"
 
