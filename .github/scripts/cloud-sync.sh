@@ -40,7 +40,7 @@ case "$CLOUD_PROVIDER" in
         TARGET_FOLDER="${TARGET_FOLDER:-img}"
         ROOT_FOLDER_ID="${ROOT_FOLDER_ID:-25aa15847d044a9bae0bb42be76ee253}"
         AUTH_FIELD="cookie"
-		_FILE_FILTER_RULES="regex:skorionos.+-nv\..*"
+		_FILE_FILTER_RULES="regex:skorionos.+-nv\.skosys"
         ;;
     "mobile")
         STORAGE_MOUNT_PATH="/139Yun"
