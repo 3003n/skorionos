@@ -159,7 +159,7 @@ DELTA_BATCH="$OUTPUT_DIR/delta-batch"
 
 echo "Generating rsync batch diff..."
 rsync --only-write-batch="$DELTA_BATCH" \
-    -aAXH --delete \
+    -aAXH --delete --no-inc-recursive \
     "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/"
 
 # rsync 会额外生成一个 .sh 辅助脚本，不需要
