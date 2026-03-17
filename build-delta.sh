@@ -154,6 +154,13 @@ if [ ! -d "$WORK_DIR/$BASE_NAME" ]; then
     exit 1
 fi
 
+# --- 生成目标 subvolume 元数据指纹（用于部署后校验） ---
+echo "Generating target metadata fingerprint..."
+TARGET_META_HASH=$(cd "$WORK_DIR/$TARGET_NAME" && find . -not -path './proc/*' -not -path './sys/*' -not -path './dev/*' -not -path './tmp/*' -not -path './run/*' \
+    -not -type s \
+    -printf '%P\t%s\t%m\t%U\t%G\t%y\n' 2>/dev/null | LC_ALL=C sort | sha256sum | awk '{print $1}')
+echo "Target metadata hash: $TARGET_META_HASH"
+
 # --- 生成 rsync 差异批处理文件 ---
 DELTA_BATCH="$OUTPUT_DIR/delta-batch"
 
@@ -201,7 +208,8 @@ cat > "$OUTPUT_DIR/delta-entry.json" <<EOF
   "filename": "${DELTA_FILENAME}",
   "checksum": "sha256:${CHECKSUM}",
   "size": ${DELTA_SIZE},
-  "full_size": ${FULL_SIZE}
+  "full_size": ${FULL_SIZE},
+  "target_meta_hash": "${TARGET_META_HASH}"
 }
 EOF
 
