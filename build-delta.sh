@@ -184,6 +184,7 @@ echo "Comparing target and base subvolumes..."
 CHANGES_FILE="$DELTA_STAGING/changes.txt"
 DELETIONS_FILE="$DELTA_STAGING/.delta-deletions"
 MODIFIED_FILE="$DELTA_STAGING/modified.txt"
+ATTRS_FILE="$DELTA_STAGING/.delta-attrs"
 
 # 用 rsync dry-run 对比新旧两个子卷，找出所有差异文件
 # -aAXH: 归档模式 + ACL + 扩展属性 + 硬链接（完整比较所有文件属性）
@@ -191,20 +192,28 @@ MODIFIED_FILE="$DELTA_STAGING/modified.txt"
 # --dry-run: 不实际修改，只输出差异
 # --itemize-changes: 输出格式为 "YXcstpoguax 路径"，首字符表示变更类型
 #   首字符含义: '>' '<' 'c' 'h' = 内容变更, '.' = 仅属性变更, '*' = 消息(如 deleting)
-#   不能用 grep -v '^\.' 过滤，否则会丢失仅属性变更的文件（权限/owner/ACL等）
 rsync -aAXH --delete --dry-run --itemize-changes \
     "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/" 2>/dev/null \
     > "$CHANGES_FILE" || true
 
 true > "$DELETIONS_FILE"
 true > "$MODIFIED_FILE"
+true > "$ATTRS_FILE"
 
-# 解析 rsync itemize-changes 输出，分类为"修改/新增"和"删除"两组
+# 解析 rsync itemize-changes 输出，精确分为三类：
+#   1. 内容变更（'>' '<' 'c' 'h' 开头）→ 打包完整文件到 tar
+#   2. 仅属性变更（'.' 开头且 p/o/g 位有变化）→ 记录到 .delta-attrs 清单
+#   3. 仅时间戳变化（'.' 开头只有 t 位变化）→ 忽略，不影响 metadata hash
+#
+# rsync itemize flags 各位含义 (YXcstpoguax):
+#   位0=更新类型 位1=文件类型 位2=checksum 位3=size 位4=timestamp
+#   位5=permissions 位6=owner 位7=group 位8=unused 位9=ACL 位10=xattr
+#
 # 每行格式示例:
 #   >f.st...... usr/bin/foo        — 内容变更的普通文件
 #   cL+++++++++ usr/lib/bar -> ..  — 变更的符号链接（附带 " -> 目标"后缀）
-#   .f...p.g... usr/bin/baz        — 仅属性变更（权限/组等），内容没变
-#   .d...p..... usr/lib/dir/       — 仅属性变更的目录
+#   .f...p.g... usr/bin/baz        — 仅权限/组变更 → 属性清单
+#   .d..t...... usr/lib/dir/       — 仅时间戳变更 → 忽略
 #   *deleting   usr/old/file       — 需要删除的文件
 while IFS= read -r line; do
     change_type="${line:0:1}"
@@ -218,8 +227,22 @@ while IFS= read -r line; do
         # *deleting 行格式固定: "*deleting   路径"（3个空格）
         del_path=$(echo "$line" | sed 's/^\*deleting   //')
         [ -n "$del_path" ] && echo "$del_path" >> "$DELETIONS_FILE"
+    elif [ "$change_type" = "." ]; then
+        # 仅属性变更：检查 p(位5)/o(位6)/g(位7) 是否有变化
+        p_flag="${line:5:1}"
+        o_flag="${line:6:1}"
+        g_flag="${line:7:1}"
+        if [ "$p_flag" != "." ] || [ "$o_flag" != "." ] || [ "$g_flag" != "." ]; then
+            # 去掉路径末尾的 /（目录条目）
+            file_path_clean="${file_path%/}"
+            target_path="$WORK_DIR/$TARGET_NAME/$file_path_clean"
+            mode=$(stat -c '%a' "$target_path")
+            uid=$(stat -c '%u' "$target_path")
+            gid=$(stat -c '%g' "$target_path")
+            printf '%s\t%s\t%s\t%s\n' "$file_path_clean" "$mode" "$uid" "$gid" >> "$ATTRS_FILE"
+        fi
+        # 只有时间戳变化的条目直接忽略，不影响 metadata hash
     else
-        # 包括内容变更和仅属性变更的文件/目录，都需要打包
         echo "$file_path" >> "$MODIFIED_FILE"
     fi
 done < "$CHANGES_FILE"
@@ -227,10 +250,12 @@ done < "$CHANGES_FILE"
 # tr -d ' ': macOS 的 wc 会在数字前补空格，去掉它
 MOD_COUNT=$(wc -l < "$MODIFIED_FILE" | tr -d ' ')
 DEL_COUNT=$(wc -l < "$DELETIONS_FILE" | tr -d ' ')
+ATTR_COUNT=$(wc -l < "$ATTRS_FILE" | tr -d ' ')
 echo "  Modified/new files: $MOD_COUNT"
 echo "  Deleted files: $DEL_COUNT"
+echo "  Attribute-only changes: $ATTR_COUNT"
 
-if [ "$MOD_COUNT" -eq 0 ] && [ "$DEL_COUNT" -eq 0 ]; then
+if [ "$MOD_COUNT" -eq 0 ] && [ "$DEL_COUNT" -eq 0 ] && [ "$ATTR_COUNT" -eq 0 ]; then
     echo "No differences found between versions, skipping"
     echo "SKIP" > "$OUTPUT_DIR/delta-status.txt"
     rm -rf "$DELTA_STAGING"
@@ -240,10 +265,10 @@ fi
 echo "Creating delta tar package..."
 DELTA_TAR="$OUTPUT_DIR/delta.tar"
 
-# 先打包删除清单文件
-tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions
+# 打包控制文件（删除清单 + 属性清单）
+tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs
 
-# 从目标子卷中打包所有修改/新增的文件
+# 从目标子卷中打包所有内容变更的文件（不含仅属性变更的文件，避免体积膨胀）
 # --xattrs --acls: 保留扩展属性和 ACL（文件权限的完整信息）
 # --numeric-owner: 用数字 UID/GID 而非用户名（避免跨系统用户名不一致）
 # -T: 从文件列表读取要打包的路径
