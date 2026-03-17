@@ -158,8 +158,11 @@ fi
 DELTA_BATCH="$OUTPUT_DIR/delta-batch"
 
 echo "Generating rsync batch diff..."
+# -rlptDH instead of -aAXH: rsync 3.4.1 has a read-batch segfault bug
+# triggered by -g (group), -o (owner), -A (ACL), -X (xattr).
+# --no-inc-recursive: inc-recursive batch files are rejected by read-batch.
 rsync --only-write-batch="$DELTA_BATCH" \
-    -aAXH --delete --no-inc-recursive \
+    -rlptDH --delete --no-inc-recursive \
     "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/"
 
 # rsync 会额外生成一个 .sh 辅助脚本，不需要
