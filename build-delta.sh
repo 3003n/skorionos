@@ -225,13 +225,14 @@ true > "$ATTRS_FILE"
 # 每行格式示例:
 #   >f.st...... usr/bin/foo        — 内容变更的普通文件
 #   cL+++++++++ usr/lib/bar -> ..  — 变更的符号链接（附带 " -> 目标"后缀）
+#   hf......... usr/bin/foo => ..  — 变更的硬链接（附带 " => 目标"后缀）
 #   .f...p.g... usr/bin/baz        — 仅权限/组变更 → 属性清单
 #   .d..t...... usr/lib/dir/       — 仅时间戳变更 → 忽略
 #   *deleting   usr/old/file       — 需要删除的文件
 while IFS= read -r line; do
     change_type="${line:0:1}"
-    # 提取路径: 去掉开头的 flags，再去掉符号链接的 " -> target" 后缀
-    file_path=$(echo "$line" | sed -e 's/^[^ ]* //' -e 's/ -> .*//')
+    # 提取路径: 去掉开头的 flags，再去掉符号链接 " -> " 和硬链接 " => " 后缀
+    file_path=$(echo "$line" | sed -e 's/^[^ ]* //' -e 's/ -> .*//' -e 's/ => .*//')
     [ -z "$file_path" ] && continue
     # 跳过当前目录自身（rsync 总会输出根目录条目）
     [ "$file_path" = "./" ] && continue
