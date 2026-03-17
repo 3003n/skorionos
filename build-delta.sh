@@ -212,8 +212,8 @@ if [ "$DELTA_FORMAT" = "rsync-batch" ]; then
     btrfs property set -fts "$WORK_DIR/$BASE_NAME" ro false
 
     # --no-inc-recursive: 避免 rsync 3.4.1 的 read-batch inc-recursive bug
-    echo "Generating rsync batch (--no-inc-recursive)..."
-    rsync -aAXH --no-inc-recursive --delete \
+    echo "Generating rsync batch (--no-inc-recursive --numeric-ids)..."
+    rsync -aAXH --numeric-ids --no-inc-recursive --delete \
         --write-batch="$DELTA_STAGING/batch" \
         "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/"
 
