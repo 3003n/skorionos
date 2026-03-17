@@ -27,7 +27,9 @@ EOF
 }
 
 # 从子卷名中提取版本号
-# 如 skorionos-50-4_5d150d2-gnome-nv -> 50-4_5d150d2
+# 例: skorionos-50-4_5d150d2-gnome-nv -> 50-4_5d150d2
+#     chimeraos-46_abc1234-gnome-core  -> 46_abc1234
+# 正则: 匹配 "前缀-主版本号(-次版本号)?_commit哈希-后缀"，提取中间版本部分
 extract_version() {
     echo "$1" | sed -n 's/\(chimeraos\|skorionos\)-\([0-9]\+\(-[0-9]\+\)\?_[a-f0-9]\+\)-.*/\2/p'
 }
@@ -95,7 +97,7 @@ echo "  Output: $DELTA_FILENAME"
 
 mkdir -p "$OUTPUT_DIR"
 
-# 在删除源文件前记录全量镜像大小（后续阈值检查需要）
+# 在删除源文件前记录全量镜像大小（后续用于计算增量包占比）
 FULL_SIZE=$(stat -c %s "$TARGET_IMG")
 
 # --- 动态计算或使用指定的工作文件系统大小 ---
@@ -130,9 +132,11 @@ mkfs.btrfs -f "$WORK_IMG" > /dev/null
 mount -t btrfs -o loop,nodatacow "$WORK_IMG" "$WORK_DIR"
 
 # --- 还原两个版本的 btrfs 快照 ---
+# .skosys 文件是 btrfs send 流经 xz 压缩的产物
+# xz -dc 解压后通过管道传给 btrfs receive 还原为子卷
 echo "Restoring target: $TARGET_NAME ..."
 xz -dc "$TARGET_IMG" | btrfs receive --quiet "$WORK_DIR"
-# 释放源文件以腾出磁盘空间给后续操作
+# 还原后立即删除源文件，腾出磁盘空间（CI 磁盘有限）
 echo "Freeing source image: $(basename "$TARGET_IMG")"
 rm -f "$TARGET_IMG"
 
@@ -155,10 +159,18 @@ if [ ! -d "$WORK_DIR/$BASE_NAME" ]; then
 fi
 
 # --- 生成目标 subvolume 元数据指纹（用于部署后校验） ---
+# 遍历目标子卷的所有文件，收集每个文件的属性（路径/大小/权限/UID/GID/类型），
+# 排序后取 sha256 得到整体指纹。部署增量包后对比此值可判断更新是否完整。
+# - 排除 /proc /sys /dev /tmp /run：这些是运行时虚拟目录，不属于镜像内容
+# - 排除 socket 文件（-not -type s）：rsync 会跳过它们，两边不一致会导致 hash 不匹配
+# - LC_ALL=C sort：保证不同 locale 下排序结果一致
 echo "Generating target metadata fingerprint..."
-TARGET_META_HASH=$(cd "$WORK_DIR/$TARGET_NAME" && find . -not -path './proc/*' -not -path './sys/*' -not -path './dev/*' -not -path './tmp/*' -not -path './run/*' \
+TARGET_META_HASH=$(cd "$WORK_DIR/$TARGET_NAME" && find . \
+    -not -path './proc/*' -not -path './sys/*' -not -path './dev/*' \
+    -not -path './tmp/*' -not -path './run/*' \
     -not -type s \
-    -printf '%P\t%s\t%m\t%U\t%G\t%y\n' 2>/dev/null | LC_ALL=C sort | sha256sum | awk '{print $1}')
+    -printf '%P\t%s\t%m\t%U\t%G\t%y\n' 2>/dev/null \
+    | LC_ALL=C sort | sha256sum | awk '{print $1}')
 echo "Target metadata hash: $TARGET_META_HASH"
 
 # --- 生成 tar 差异包 ---
@@ -173,6 +185,13 @@ CHANGES_FILE="$DELTA_STAGING/changes.txt"
 DELETIONS_FILE="$DELTA_STAGING/.delta-deletions"
 MODIFIED_FILE="$DELTA_STAGING/modified.txt"
 
+# 用 rsync dry-run 对比新旧两个子卷，找出所有差异文件
+# -aAXH: 归档模式 + ACL + 扩展属性 + 硬链接（完整比较所有文件属性）
+# --delete: 同时检测需要删除的文件（base 中有但 target 中没有的）
+# --dry-run: 不实际修改，只输出差异
+# --itemize-changes: 输出格式为 "YXcstpoguax 路径"，首字符表示变更类型
+# grep -v '^\.' 过滤目录摘要行（如 ".d..t...... ./"）
+# || true: grep 无匹配时返回 1，防止 set -e 终止脚本
 rsync -aAXH --delete --dry-run --itemize-changes \
     "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/" 2>/dev/null \
     | grep -v '^\.' > "$CHANGES_FILE" || true
@@ -180,22 +199,27 @@ rsync -aAXH --delete --dry-run --itemize-changes \
 true > "$DELETIONS_FILE"
 true > "$MODIFIED_FILE"
 
+# 解析 rsync itemize-changes 输出，分类为"修改/新增"和"删除"两组
+# 每行格式示例:
+#   >f.st...... usr/bin/foo        — 修改的普通文件
+#   cL+++++++++ usr/lib/bar -> ..  — 变更的符号链接（附带 " -> 目标"后缀）
+#   *deleting   usr/old/file       — 需要删除的文件
 while IFS= read -r line; do
     change_type="${line:0:1}"
-    # itemize-changes format: YXcstpoguax path
-    file_path=$(echo "$line" | sed 's/^[^ ]* //')
+    # 提取路径: 去掉开头的 flags，再去掉符号链接的 " -> target" 后缀
+    file_path=$(echo "$line" | sed -e 's/^[^ ]* //' -e 's/ -> .*//')
     [ -z "$file_path" ] && continue
 
     if [ "$change_type" = "*" ]; then
-        # *deleting - file exists in base but not in target
+        # *deleting 行格式固定: "*deleting   路径"（3个空格）
         del_path=$(echo "$line" | sed 's/^\*deleting   //')
         [ -n "$del_path" ] && echo "$del_path" >> "$DELETIONS_FILE"
     else
-        # new/modified file - <, >, c, h, etc.
         echo "$file_path" >> "$MODIFIED_FILE"
     fi
 done < "$CHANGES_FILE"
 
+# tr -d ' ': macOS 的 wc 会在数字前补空格，去掉它
 MOD_COUNT=$(wc -l < "$MODIFIED_FILE" | tr -d ' ')
 DEL_COUNT=$(wc -l < "$DELETIONS_FILE" | tr -d ' ')
 echo "  Modified/new files: $MOD_COUNT"
@@ -211,10 +235,13 @@ fi
 echo "Creating delta tar package..."
 DELTA_TAR="$OUTPUT_DIR/delta.tar"
 
-# Pack the deletions list first
+# 先打包删除清单文件
 tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions
 
-# Append modified/new files from target subvolume
+# 从目标子卷中打包所有修改/新增的文件
+# --xattrs --acls: 保留扩展属性和 ACL（文件权限的完整信息）
+# --numeric-owner: 用数字 UID/GID 而非用户名（避免跨系统用户名不一致）
+# -T: 从文件列表读取要打包的路径
 if [ "$MOD_COUNT" -gt 0 ]; then
     tar rf "$DELTA_TAR" -C "$WORK_DIR/$TARGET_NAME" \
         --xattrs --acls --numeric-owner \
@@ -224,15 +251,17 @@ fi
 rm -rf "$DELTA_STAGING"
 
 # --- xz 压缩 ---
+# -7: 压缩级别 7（平衡压缩率和速度）
+# -T0: 使用所有 CPU 核心并行压缩
 DELTA_FILE="$OUTPUT_DIR/$DELTA_FILENAME"
 
 echo "Compressing delta with xz..."
 xz -7 -T0 < "$DELTA_TAR" > "$DELTA_FILE"
 rm -f "$DELTA_TAR"
 
-# --- 增量包大小阈值检查（超过全量镜像指定比例则跳过） ---
+# --- 增量包大小阈值检查 ---
+# 如果增量包体积超过全量镜像的 MAX_RATIO%，说明差异太大，增量更新意义不大，跳过
 DELTA_SIZE=$(stat -c %s "$DELTA_FILE")
-# FULL_SIZE 已在脚本开头（删除源文件前）通过 stat 获取
 RATIO=$((DELTA_SIZE * 100 / FULL_SIZE))
 
 echo "Delta size: $(numfmt --to=iec "$DELTA_SIZE") ($RATIO% of full image)"
@@ -245,10 +274,11 @@ if [ "$RATIO" -gt "$MAX_RATIO" ]; then
 fi
 
 # --- 生成校验和 ---
+# awk '{print $1}': sha256sum 输出格式为 "hash  filename"，只取 hash 部分
 CHECKSUM=$(sha256sum "$DELTA_FILE" | awk '{print $1}')
 echo "$CHECKSUM  $(basename "$DELTA_FILE")" > "$OUTPUT_DIR/delta-sha256sum.txt"
 
-# --- 输出 manifest 片段（供 publish-delta.sh 合并） ---
+# --- 输出 manifest 片段（供 publish-delta.sh 合并到发布 manifest 中） ---
 cat > "$OUTPUT_DIR/delta-entry.json" <<EOF
 {
   "from_version": "${BASE_VERSION}",
