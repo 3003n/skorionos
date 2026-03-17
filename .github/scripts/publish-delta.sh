@@ -32,10 +32,17 @@ mkdir -p "$OUTPUT_DIR"
 declare -A branch_entries
 has_entries=false
 
+echo "=== Debug: DELTAS_DIR contents ==="
+ls -R "${DELTAS_DIR}" 2>&1 || echo "(empty or not found)"
+echo "=== Debug: searching for delta-status.txt ==="
+find "${DELTAS_DIR}" -name "delta-status.txt" -exec echo "Found: {}" \; -exec cat {} \; 2>&1 || true
+echo "=== End debug ==="
+
 for status_file in "${DELTAS_DIR}"/*/delta-status.txt; do
     [ -f "$status_file" ] || continue
     dir=$(dirname "$status_file")
     status=$(cat "$status_file")
+    echo "Debug: status_file=$status_file status=[$status]"
     [ "$status" != "OK" ] && continue
 
     entry_file="${dir}/delta-entry.json"
