@@ -32,17 +32,13 @@ mkdir -p "$OUTPUT_DIR"
 declare -A branch_entries
 has_entries=false
 
-echo "=== Debug: DELTAS_DIR contents ==="
-ls -R "${DELTAS_DIR}" 2>&1 || echo "(empty or not found)"
-echo "=== Debug: searching for delta-status.txt ==="
-find "${DELTAS_DIR}" -name "delta-status.txt" -exec echo "Found: {}" \; -exec cat {} \; 2>&1 || true
-echo "=== End debug ==="
-
-for status_file in "${DELTAS_DIR}"/*/delta-status.txt; do
+# download-artifact@v5 only creates per-artifact subdirectories when
+# artifacts.length > 1; with a single artifact files land directly in
+# DELTAS_DIR.  Use find to handle both layouts.
+while IFS= read -r status_file; do
     [ -f "$status_file" ] || continue
     dir=$(dirname "$status_file")
     status=$(cat "$status_file")
-    echo "Debug: status_file=$status_file status=[$status]"
     [ "$status" != "OK" ] && continue
 
     entry_file="${dir}/delta-entry.json"
@@ -60,7 +56,7 @@ for status_file in "${DELTAS_DIR}"/*/delta-status.txt; do
 
     branch_entries[$branch]="${branch_entries[$branch]:-}$(cat "$entry_file"),"
     has_entries=true
-done
+done < <(find "${DELTAS_DIR}" -name "delta-status.txt" 2>/dev/null)
 
 if [ "$has_entries" = false ]; then
     echo "No successful deltas to publish"
