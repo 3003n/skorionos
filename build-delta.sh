@@ -173,13 +173,26 @@ TARGET_META_HASH=$(cd "$WORK_DIR/$TARGET_NAME" && find . \
     | LC_ALL=C sort | sha256sum | awk '{print $1}')
 echo "Target metadata hash: $TARGET_META_HASH"
 
+# --- 生成 target 完整文件列表（用于部署后清理设备 baseline 中的多余文件） ---
+# 设备上的 baseline 可能包含 CI baseline 中不存在的文件（如 fontconfig 缓存等运行时产生的文件）。
+# delta 的删除清单只包含 CI baseline 中有但 target 中没有的文件，无法覆盖设备独有的多余文件。
+# 将 target 完整文件列表打入 delta 包，部署后据此删除所有不在列表中的文件，确保精确匹配。
+DELTA_STAGING="$OUTPUT_DIR/delta-staging"
+mkdir -p "$DELTA_STAGING"
+FILELIST_FILE="$DELTA_STAGING/.delta-filelist"
+(cd "$WORK_DIR/$TARGET_NAME" && find . \
+    -not -path './proc/*' -not -path './sys/*' -not -path './dev/*' \
+    -not -path './tmp/*' -not -path './run/*' \
+    -not -type s \
+    -printf '%P\n' 2>/dev/null \
+    | LC_ALL=C sort > "$FILELIST_FILE")
+FILELIST_COUNT=$(wc -l < "$FILELIST_FILE" | tr -d ' ')
+echo "Target file list: $FILELIST_COUNT entries"
+
 # --- 生成 tar 差异包 ---
 # rsync 3.4.1 的 read-batch 有 bug，改用 tar 差异包方案：
 # 1. rsync dry-run 找出变更/删除文件
-# 2. tar 打包变更文件 + 删除清单
-DELTA_STAGING="$OUTPUT_DIR/delta-staging"
-mkdir -p "$DELTA_STAGING"
-
+# 2. tar 打包变更文件 + 删除清单 + 属性清单 + 完整文件列表
 echo "Comparing target and base subvolumes..."
 CHANGES_FILE="$DELTA_STAGING/changes.txt"
 DELETIONS_FILE="$DELTA_STAGING/.delta-deletions"
@@ -265,8 +278,8 @@ fi
 echo "Creating delta tar package..."
 DELTA_TAR="$OUTPUT_DIR/delta.tar"
 
-# 打包控制文件（删除清单 + 属性清单）
-tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs
+# 打包控制文件（删除清单 + 属性清单 + 完整文件列表）
+tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs .delta-filelist
 
 # 从目标子卷中打包所有内容变更的文件（不含仅属性变更的文件，避免体积膨胀）
 # --xattrs --acls: 保留扩展属性和 ACL（文件权限的完整信息）
