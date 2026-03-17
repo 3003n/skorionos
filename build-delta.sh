@@ -190,31 +190,36 @@ MODIFIED_FILE="$DELTA_STAGING/modified.txt"
 # --delete: 同时检测需要删除的文件（base 中有但 target 中没有的）
 # --dry-run: 不实际修改，只输出差异
 # --itemize-changes: 输出格式为 "YXcstpoguax 路径"，首字符表示变更类型
-# grep -v '^\.' 过滤目录摘要行（如 ".d..t...... ./"）
-# || true: grep 无匹配时返回 1，防止 set -e 终止脚本
+#   首字符含义: '>' '<' 'c' 'h' = 内容变更, '.' = 仅属性变更, '*' = 消息(如 deleting)
+#   不能用 grep -v '^\.' 过滤，否则会丢失仅属性变更的文件（权限/owner/ACL等）
 rsync -aAXH --delete --dry-run --itemize-changes \
     "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/" 2>/dev/null \
-    | grep -v '^\.' > "$CHANGES_FILE" || true
+    > "$CHANGES_FILE" || true
 
 true > "$DELETIONS_FILE"
 true > "$MODIFIED_FILE"
 
 # 解析 rsync itemize-changes 输出，分类为"修改/新增"和"删除"两组
 # 每行格式示例:
-#   >f.st...... usr/bin/foo        — 修改的普通文件
+#   >f.st...... usr/bin/foo        — 内容变更的普通文件
 #   cL+++++++++ usr/lib/bar -> ..  — 变更的符号链接（附带 " -> 目标"后缀）
+#   .f...p.g... usr/bin/baz        — 仅属性变更（权限/组等），内容没变
+#   .d...p..... usr/lib/dir/       — 仅属性变更的目录
 #   *deleting   usr/old/file       — 需要删除的文件
 while IFS= read -r line; do
     change_type="${line:0:1}"
     # 提取路径: 去掉开头的 flags，再去掉符号链接的 " -> target" 后缀
     file_path=$(echo "$line" | sed -e 's/^[^ ]* //' -e 's/ -> .*//')
     [ -z "$file_path" ] && continue
+    # 跳过当前目录自身（rsync 总会输出根目录条目）
+    [ "$file_path" = "./" ] && continue
 
     if [ "$change_type" = "*" ]; then
         # *deleting 行格式固定: "*deleting   路径"（3个空格）
         del_path=$(echo "$line" | sed 's/^\*deleting   //')
         [ -n "$del_path" ] && echo "$del_path" >> "$DELETIONS_FILE"
     else
+        # 包括内容变更和仅属性变更的文件/目录，都需要打包
         echo "$file_path" >> "$MODIFIED_FILE"
     fi
 done < "$CHANGES_FILE"
