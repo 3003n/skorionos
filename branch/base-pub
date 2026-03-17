@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export BASE_PACKAGES="\
-	acpi_call-dkms \
 	aria2 \
 	bat \
 	bluez-utils \
@@ -25,8 +24,6 @@ export BASE_PACKAGES="\
 	gparted \
 	haveged \
 	htop \
-	intel-gpu-tools \
-	intel-undervolt \
 	ibus-libpinyin \
 	ibus-table-chinese \
 	ibus-anthy \
@@ -43,7 +40,6 @@ export BASE_PACKAGES="\
 	lzip \
 	modemmanager \
 	nmon \
-	ntfs-3g \
 	otf-fira-mono \
 	otf-fira-sans \
 	otf-font-awesome \
@@ -67,8 +63,6 @@ export BASE_PACKAGES="\
 	unace \
 	v2ray \
 	wlr-randr \
-	xdelta3 \
-	xorg-xinit \
 	xorg-server-xvfb \
 	zoxide \
 "

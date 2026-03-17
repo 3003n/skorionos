@@ -35,6 +35,7 @@ MESA_PACKAGE="\
 export PACKAGES="\
 	$MESA_PACKAGE \
 	accountsservice \
+	acpi_call-dkms \
 	alsa-firmware \
 	alsa-utils \
 	amd-ucode \
@@ -60,8 +61,10 @@ export PACKAGES="\
 	gvfs-smb \
 	gvfs-nfs \
 	gzip \
+	intel-gpu-tools \
 	intel-media-driver \
 	intel-ucode \
+	intel-undervolt \
 	kitty-terminfo \
 	less \
 	lib32-curl \
@@ -90,6 +93,7 @@ export PACKAGES="\
 	noise-suppression-for-voice \
 	noto-fonts-emoji \
 	nss-mdns \
+	ntfs-3g \
 	openal \
 	openssh \
 	p7zip \
@@ -121,10 +125,11 @@ export PACKAGES="\
 	which \
 	wireplumber \
 	wqy-microhei \
+	xdelta3 \
 	xdg-desktop-portal \
 	xdg-desktop-portal-wlr \
 	xf86-video-amdgpu \
-	xorg-server \
+	xorg-xinit \xorg-server \
 	xz \
 	zip \
 	zsh \
