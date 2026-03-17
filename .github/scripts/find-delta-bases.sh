@@ -94,9 +94,10 @@ for branch in $target_branches; do
     # 非 UNSTABLE 通道需要同时满足通用深度和稳定版深度
     need_stable=$( [ "$target_is_unstable" = false ] && echo "$STABLE_DEPTH" || echo "0" )
 
-    # 遍历 releases（已按时间降序排列，跳过目标版本自身）
-    while IFS= read -r rel; do
-        # 两个深度条件都已满足则停止
+    # 预先将 releases JSON 数组展开为 bash 数组，避免 break 导致 jq broken pipe
+    mapfile -t release_lines < <(echo "$releases" | jq -c '.[]')
+
+    for rel in "${release_lines[@]}"; do
         [ "$found" -ge "$DELTA_DEPTH" ] && [ "$found_stable" -ge "$need_stable" ] && break
 
         tag=$(echo "$rel" | jq -r '.tag_name')
@@ -143,7 +144,7 @@ for branch in $target_branches; do
             echo "  Found base: $label" >&2
             matrix_entries+=("{\"base_tag\":\"$tag\",\"branch\":\"$branch\"}")
         fi
-    done < <(echo "$releases" | jq -c '.[]')
+    done
 done
 
 if [ ${#matrix_entries[@]} -eq 0 ]; then
