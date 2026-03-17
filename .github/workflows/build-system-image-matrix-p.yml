@@ -265,6 +265,7 @@ jobs:
         env:
           BASE_TAG: ${{ matrix.base_tag }}
           MAX_DELTA_RATIO: ${{ vars.MAX_DELTA_RATIO || '70' }}
+          DELTA_FORMAT: ${{ vars.DELTA_FORMAT || 'rsync-batch' }}
         run: |
           mkdir -p output
           sudo bash build-delta.sh \
@@ -272,6 +273,7 @@ jobs:
             --base-img "$BASE_IMG" \
             --base-tag "$BASE_TAG" \
             --max-ratio "$MAX_DELTA_RATIO" \
+            --delta-format "$DELTA_FORMAT" \
             --output-dir output/
           sudo chown -R "$(id -u):$(id -g)" output/
           cat output/delta-status.txt

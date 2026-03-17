@@ -3,7 +3,11 @@
 # 供自动和手动增量工作流共用
 #
 # 输入:  两个 .skosys 文件 (btrfs send 流经 xz 压缩)
-# 输出:  .skdelta 文件 (tar 差异包经 xz 压缩)、manifest 片段、sha256sum
+# 输出:  .skdelta 文件经 xz 压缩、manifest 片段、sha256sum
+#
+# 支持两种增量格式 (--delta-format):
+#   rsync-batch  - rsync --write-batch 二进制差异（更小，需 rsync 3.4+ 配合 --no-inc-recursive）
+#   tar          - tar 打包变更文件 + 控制清单（兼容性更好）
 
 set -euo pipefail
 
@@ -22,6 +26,7 @@ Optional:
   --base-tag TAG       Base version release tag (auto-derived from version)
   --max-ratio PCT      Max delta/full size ratio percentage (default: 70)
   --work-size SIZE     Temp btrfs image size (default: auto-calculated)
+  --delta-format FMT   Delta format: rsync-batch (default) or tar
 EOF
     exit 1
 }
@@ -43,6 +48,7 @@ MAX_RATIO=70
 OUTPUT_DIR=""
 WORK_SIZE=""
 WORK_SIZE_SET=false
+DELTA_FORMAT="rsync-batch"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -54,6 +60,7 @@ while [[ $# -gt 0 ]]; do
         --max-ratio)   MAX_RATIO="$2";   shift 2 ;;
         --output-dir)  OUTPUT_DIR="$2";  shift 2 ;;
         --work-size)   WORK_SIZE="$2"; WORK_SIZE_SET=true; shift 2 ;;
+        --delta-format) DELTA_FORMAT="$2"; shift 2 ;;
         -h|--help)     usage ;;
         *) echo "Unknown option: $1" >&2; usage ;;
     esac
@@ -88,11 +95,17 @@ fi
 
 [ -z "$BASE_TAG" ] && BASE_TAG="$BASE_VERSION"
 
+if [ "$DELTA_FORMAT" != "rsync-batch" ] && [ "$DELTA_FORMAT" != "tar" ]; then
+    echo "Error: --delta-format must be 'rsync-batch' or 'tar', got '$DELTA_FORMAT'" >&2
+    exit 1
+fi
+
 DELTA_FILENAME="${TARGET_NAME}.from_${BASE_VERSION}.skdelta"
 
 echo "=== Delta Generation ==="
 echo "  Target: $TARGET_NAME ($TARGET_VERSION)"
 echo "  Base:   $BASE_NAME ($BASE_VERSION)"
+echo "  Format: $DELTA_FORMAT"
 echo "  Output: $DELTA_FILENAME"
 
 mkdir -p "$OUTPUT_DIR"
@@ -189,110 +202,109 @@ FILELIST_FILE="$DELTA_STAGING/.delta-filelist"
 FILELIST_COUNT=$(wc -l < "$FILELIST_FILE" | tr -d ' ')
 echo "Target file list: $FILELIST_COUNT entries"
 
-# --- 生成 tar 差异包 ---
-# rsync 3.4.1 的 read-batch 有 bug，改用 tar 差异包方案：
-# 1. rsync dry-run 找出变更/删除文件
-# 2. tar 打包变更文件 + 删除清单 + 属性清单 + 完整文件列表
-echo "Comparing target and base subvolumes..."
-CHANGES_FILE="$DELTA_STAGING/changes.txt"
-DELETIONS_FILE="$DELTA_STAGING/.delta-deletions"
-MODIFIED_FILE="$DELTA_STAGING/modified.txt"
-ATTRS_FILE="$DELTA_STAGING/.delta-attrs"
-
-# 用 rsync dry-run 对比新旧两个子卷，找出所有差异文件
-# -aAXH: 归档模式 + ACL + 扩展属性 + 硬链接（完整比较所有文件属性）
-# --delete: 同时检测需要删除的文件（base 中有但 target 中没有的）
-# --dry-run: 不实际修改，只输出差异
-# --itemize-changes: 输出格式为 "YXcstpoguax 路径"，首字符表示变更类型
-#   首字符含义: '>' '<' 'c' 'h' = 内容变更, '.' = 仅属性变更, '*' = 消息(如 deleting)
-rsync -aAXH --delete --dry-run --itemize-changes \
-    "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/" 2>/dev/null \
-    > "$CHANGES_FILE" || true
-
-true > "$DELETIONS_FILE"
-true > "$MODIFIED_FILE"
-true > "$ATTRS_FILE"
-
-# 解析 rsync itemize-changes 输出，精确分为三类：
-#   1. 内容变更（'>' '<' 'c' 'h' 开头）→ 打包完整文件到 tar
-#   2. 仅属性变更（'.' 开头且 p/o/g 位有变化）→ 记录到 .delta-attrs 清单
-#   3. 仅时间戳变化（'.' 开头只有 t 位变化）→ 忽略，不影响 metadata hash
-#
-# rsync itemize flags 各位含义 (YXcstpoguax):
-#   位0=更新类型 位1=文件类型 位2=checksum 位3=size 位4=timestamp
-#   位5=permissions 位6=owner 位7=group 位8=unused 位9=ACL 位10=xattr
-#
-# 每行格式示例:
-#   >f.st...... usr/bin/foo        — 内容变更的普通文件
-#   cL+++++++++ usr/lib/bar -> ..  — 变更的符号链接（附带 " -> 目标"后缀）
-#   hf......... usr/bin/foo => ..  — 变更的硬链接（附带 " => 目标"后缀）
-#   .f...p.g... usr/bin/baz        — 仅权限/组变更 → 属性清单
-#   .d..t...... usr/lib/dir/       — 仅时间戳变更 → 忽略
-#   *deleting   usr/old/file       — 需要删除的文件
-while IFS= read -r line; do
-    change_type="${line:0:1}"
-    # 提取路径: 去掉开头的 flags，再去掉符号链接 " -> " 和硬链接 " => " 后缀
-    file_path=$(echo "$line" | sed -e 's/^[^ ]* //' -e 's/ -> .*//' -e 's/ => .*//')
-    [ -z "$file_path" ] && continue
-    # 跳过当前目录自身（rsync 总会输出根目录条目）
-    [ "$file_path" = "./" ] && continue
-
-    if [ "$change_type" = "*" ]; then
-        # *deleting 行格式固定: "*deleting   路径"（3个空格）
-        del_path=$(echo "$line" | sed 's/^\*deleting   //')
-        [ -n "$del_path" ] && echo "$del_path" >> "$DELETIONS_FILE"
-    elif [ "$change_type" = "." ]; then
-        # 仅属性变更：检查 p(位5)/o(位6)/g(位7) 是否有变化
-        p_flag="${line:5:1}"
-        o_flag="${line:6:1}"
-        g_flag="${line:7:1}"
-        if [ "$p_flag" != "." ] || [ "$o_flag" != "." ] || [ "$g_flag" != "." ]; then
-            # 去掉路径末尾的 /（目录条目）
-            file_path_clean="${file_path%/}"
-            target_path="$WORK_DIR/$TARGET_NAME/$file_path_clean"
-            mode=$(stat -c '%a' "$target_path")
-            uid=$(stat -c '%u' "$target_path")
-            gid=$(stat -c '%g' "$target_path")
-            printf '%s\t%s\t%s\t%s\n' "$file_path_clean" "$mode" "$uid" "$gid" >> "$ATTRS_FILE"
-        fi
-        # 只有时间戳变化的条目直接忽略，不影响 metadata hash
-    else
-        echo "$file_path" >> "$MODIFIED_FILE"
-    fi
-done < "$CHANGES_FILE"
-
-# tr -d ' ': macOS 的 wc 会在数字前补空格，去掉它
-MOD_COUNT=$(wc -l < "$MODIFIED_FILE" | tr -d ' ')
-DEL_COUNT=$(wc -l < "$DELETIONS_FILE" | tr -d ' ')
-ATTR_COUNT=$(wc -l < "$ATTRS_FILE" | tr -d ' ')
-echo "  Modified/new files: $MOD_COUNT"
-echo "  Deleted files: $DEL_COUNT"
-echo "  Attribute-only changes: $ATTR_COUNT"
-
-if [ "$MOD_COUNT" -eq 0 ] && [ "$DEL_COUNT" -eq 0 ] && [ "$ATTR_COUNT" -eq 0 ]; then
-    echo "No differences found between versions, skipping"
-    echo "SKIP" > "$OUTPUT_DIR/delta-status.txt"
-    rm -rf "$DELTA_STAGING"
-    exit 0
-fi
-
-echo "Creating delta tar package..."
+# --- 生成增量包（按 DELTA_FORMAT 分支） ---
 DELTA_TAR="$OUTPUT_DIR/delta.tar"
 
-# 打包控制文件（删除清单 + 属性清单 + 完整文件列表）
-tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs .delta-filelist
+if [ "$DELTA_FORMAT" = "rsync-batch" ]; then
+    # === rsync-batch 格式 ===
+    # rsync --write-batch 生成二进制差异，体积比 tar 方式小得多。
+    # --no-inc-recursive: 避免 rsync 3.4.1 的 read-batch inc-recursive bug
+    echo "Generating rsync batch (--no-inc-recursive)..."
+    rsync -aAXH --no-inc-recursive --delete \
+        --write-batch="$DELTA_STAGING/batch" \
+        "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/"
 
-# 从目标子卷中打包所有内容变更的文件（不含仅属性变更的文件，避免体积膨胀）
-# --xattrs --acls: 保留扩展属性和 ACL（文件权限的完整信息）
-# --numeric-owner: 用数字 UID/GID 而非用户名（避免跨系统用户名不一致）
-# -T: 从文件列表读取要打包的路径
-if [ "$MOD_COUNT" -gt 0 ]; then
-    tar rf "$DELTA_TAR" -C "$WORK_DIR/$TARGET_NAME" \
-        --xattrs --acls --numeric-owner \
-        -T "$MODIFIED_FILE"
+    BATCH_SIZE=$(stat -c %s "$DELTA_STAGING/batch")
+    echo "  Batch file size: $(numfmt --to=iec "$BATCH_SIZE")"
+
+    tar cf "$DELTA_TAR" -C "$DELTA_STAGING" batch .delta-filelist
+    rm -rf "$DELTA_STAGING"
+
+else
+    # === tar 格式 ===
+    # rsync dry-run 找出变更/删除文件，tar 打包变更文件 + 控制清单
+    echo "Comparing target and base subvolumes..."
+    CHANGES_FILE="$DELTA_STAGING/changes.txt"
+    DELETIONS_FILE="$DELTA_STAGING/.delta-deletions"
+    MODIFIED_FILE="$DELTA_STAGING/modified.txt"
+    ATTRS_FILE="$DELTA_STAGING/.delta-attrs"
+
+    rsync -aAXH --delete --dry-run --itemize-changes \
+        "$WORK_DIR/$TARGET_NAME/" "$WORK_DIR/$BASE_NAME/" 2>/dev/null \
+        > "$CHANGES_FILE" || true
+
+    true > "$DELETIONS_FILE"
+    true > "$MODIFIED_FILE"
+    true > "$ATTRS_FILE"
+
+    # 解析 rsync itemize-changes 输出，精确分为三类：
+    #   1. 内容变更（'>' '<' 'c' 'h' 开头）→ 打包完整文件到 tar
+    #   2. 仅属性变更（'.' 开头且 p/o/g 位有变化）→ 记录到 .delta-attrs 清单
+    #   3. 仅时间戳变化（'.' 开头只有 t 位变化）→ 忽略，不影响 metadata hash
+    #
+    # rsync itemize flags 各位含义 (YXcstpoguax):
+    #   位0=更新类型 位1=文件类型 位2=checksum 位3=size 位4=timestamp
+    #   位5=permissions 位6=owner 位7=group 位8=unused 位9=ACL 位10=xattr
+    #
+    # 每行格式示例:
+    #   >f.st...... usr/bin/foo        — 内容变更的普通文件
+    #   cL+++++++++ usr/lib/bar -> ..  — 变更的符号链接（附带 " -> 目标"后缀）
+    #   hf......... usr/bin/foo => ..  — 变更的硬链接（附带 " => 目标"后缀）
+    #   .f...p.g... usr/bin/baz        — 仅权限/组变更 → 属性清单
+    #   .d..t...... usr/lib/dir/       — 仅时间戳变更 → 忽略
+    #   *deleting   usr/old/file       — 需要删除的文件
+    while IFS= read -r line; do
+        change_type="${line:0:1}"
+        # 提取路径: 去掉开头的 flags，再去掉符号链接 " -> " 和硬链接 " => " 后缀
+        file_path=$(echo "$line" | sed -e 's/^[^ ]* //' -e 's/ -> .*//' -e 's/ => .*//')
+        [ -z "$file_path" ] && continue
+        [ "$file_path" = "./" ] && continue
+
+        if [ "$change_type" = "*" ]; then
+            del_path=$(echo "$line" | sed 's/^\*deleting   //')
+            [ -n "$del_path" ] && echo "$del_path" >> "$DELETIONS_FILE"
+        elif [ "$change_type" = "." ]; then
+            p_flag="${line:5:1}"
+            o_flag="${line:6:1}"
+            g_flag="${line:7:1}"
+            if [ "$p_flag" != "." ] || [ "$o_flag" != "." ] || [ "$g_flag" != "." ]; then
+                file_path_clean="${file_path%/}"
+                target_path="$WORK_DIR/$TARGET_NAME/$file_path_clean"
+                mode=$(stat -c '%a' "$target_path")
+                uid=$(stat -c '%u' "$target_path")
+                gid=$(stat -c '%g' "$target_path")
+                printf '%s\t%s\t%s\t%s\n' "$file_path_clean" "$mode" "$uid" "$gid" >> "$ATTRS_FILE"
+            fi
+        else
+            echo "$file_path" >> "$MODIFIED_FILE"
+        fi
+    done < "$CHANGES_FILE"
+
+    MOD_COUNT=$(wc -l < "$MODIFIED_FILE" | tr -d ' ')
+    DEL_COUNT=$(wc -l < "$DELETIONS_FILE" | tr -d ' ')
+    ATTR_COUNT=$(wc -l < "$ATTRS_FILE" | tr -d ' ')
+    echo "  Modified/new files: $MOD_COUNT"
+    echo "  Deleted files: $DEL_COUNT"
+    echo "  Attribute-only changes: $ATTR_COUNT"
+
+    if [ "$MOD_COUNT" -eq 0 ] && [ "$DEL_COUNT" -eq 0 ] && [ "$ATTR_COUNT" -eq 0 ]; then
+        echo "No differences found between versions, skipping"
+        echo "SKIP" > "$OUTPUT_DIR/delta-status.txt"
+        rm -rf "$DELTA_STAGING"
+        exit 0
+    fi
+
+    echo "Creating delta tar package..."
+    tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs .delta-filelist
+
+    if [ "$MOD_COUNT" -gt 0 ]; then
+        tar rf "$DELTA_TAR" -C "$WORK_DIR/$TARGET_NAME" \
+            --xattrs --acls --numeric-owner \
+            -T "$MODIFIED_FILE"
+    fi
+
+    rm -rf "$DELTA_STAGING"
 fi
-
-rm -rf "$DELTA_STAGING"
 
 # --- xz 压缩 ---
 # -7: 压缩级别 7（平衡压缩率和速度）
@@ -331,7 +343,8 @@ cat > "$OUTPUT_DIR/delta-entry.json" <<EOF
   "checksum": "sha256:${CHECKSUM}",
   "size": ${DELTA_SIZE},
   "full_size": ${FULL_SIZE},
-  "target_meta_hash": "${TARGET_META_HASH}"
+  "target_meta_hash": "${TARGET_META_HASH}",
+  "format": "${DELTA_FORMAT}"
 }
 EOF
 

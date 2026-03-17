@@ -21,6 +21,15 @@ on:
         required: false
         type: string
         default: "70"
+      delta_format:
+        description: "Delta format (empty = use repo variable DELTA_FORMAT)"
+        required: false
+        type: choice
+        options:
+          - ""
+          - rsync-batch
+          - tar
+        default: ""
       sync_to_cloud:
         description: "Trigger cloud sync after publish"
         required: false
@@ -98,6 +107,7 @@ jobs:
         env:
           BASE_TAG: ${{ matrix.base_tag }}
           MAX_DELTA_RATIO: ${{ inputs.max_delta_ratio }}
+          DELTA_FORMAT: ${{ inputs.delta_format || vars.DELTA_FORMAT || 'rsync-batch' }}
         run: |
           mkdir -p output
           sudo bash build-delta.sh \
@@ -105,6 +115,7 @@ jobs:
             --base-img "$BASE_IMG" \
             --base-tag "$BASE_TAG" \
             --max-ratio "$MAX_DELTA_RATIO" \
+            --delta-format "$DELTA_FORMAT" \
             --output-dir output/
           sudo chown -R "$(id -u):$(id -g)" output/
           cat output/delta-status.txt
