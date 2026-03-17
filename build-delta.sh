@@ -207,7 +207,10 @@ DELTA_TAR="$OUTPUT_DIR/delta.tar"
 
 if [ "$DELTA_FORMAT" = "rsync-batch" ]; then
     # === rsync-batch 格式 ===
-    # rsync --write-batch 生成二进制差异，体积比 tar 方式小得多。
+    # btrfs receive 创建的子卷带 received_uuid，需要 -f 强制解除只读
+    echo "Setting base subvolume writable..."
+    btrfs property set -fts "$WORK_DIR/$BASE_NAME" ro false
+
     # --no-inc-recursive: 避免 rsync 3.4.1 的 read-batch inc-recursive bug
     echo "Generating rsync batch (--no-inc-recursive)..."
     rsync -aAXH --no-inc-recursive --delete \
