@@ -129,7 +129,8 @@ export PACKAGES="\
 	xdg-desktop-portal \
 	xdg-desktop-portal-wlr \
 	xf86-video-amdgpu \
-	xorg-xinit \xorg-server \
+	xorg-xinit \
+	xorg-server \
 	xz \
 	zip \
 	zsh \
