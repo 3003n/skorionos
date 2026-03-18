@@ -202,6 +202,17 @@ FILELIST_FILE="$DELTA_STAGING/.delta-filelist"
 FILELIST_COUNT=$(wc -l < "$FILELIST_FILE" | tr -d ' ')
 echo "Target file list: $FILELIST_COUNT entries"
 
+# --- 嵌入元数据供离线安装自检查 ---
+cat > "$DELTA_STAGING/.delta-meta.json" <<EOF
+{
+  "from_version": "${BASE_VERSION}",
+  "target_version": "${TARGET_VERSION}",
+  "target_name": "${TARGET_NAME}",
+  "format": "${DELTA_FORMAT}",
+  "target_meta_hash": "${TARGET_META_HASH}"
+}
+EOF
+
 # --- 生成增量包（按 DELTA_FORMAT 分支） ---
 DELTA_TAR="$OUTPUT_DIR/delta.tar"
 
@@ -220,7 +231,7 @@ if [ "$DELTA_FORMAT" = "rsync-batch" ]; then
     BATCH_SIZE=$(stat -c %s "$DELTA_STAGING/batch")
     echo "  Batch file size: $(numfmt --to=iec "$BATCH_SIZE")"
 
-    tar cf "$DELTA_TAR" -C "$DELTA_STAGING" batch .delta-filelist
+    tar cf "$DELTA_TAR" -C "$DELTA_STAGING" batch .delta-filelist .delta-meta.json
     rm -rf "$DELTA_STAGING"
 
 else
@@ -298,7 +309,7 @@ else
     fi
 
     echo "Creating delta tar package..."
-    tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs .delta-filelist
+    tar cf "$DELTA_TAR" -C "$DELTA_STAGING" .delta-deletions .delta-attrs .delta-filelist .delta-meta.json
 
     if [ "$MOD_COUNT" -gt 0 ]; then
         tar rf "$DELTA_TAR" -C "$WORK_DIR/$TARGET_NAME" \
