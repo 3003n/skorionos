@@ -192,6 +192,18 @@ jobs:
             output/container*.txt
         run: python3 _repo/.github/scripts/release-upload.py
 
+      - name: Trigger cloud sync (full images)
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          TARGET_TAG: ${{ needs.build-system-image.outputs.version }}
+        run: |
+          gh workflow run sync-to-mobile-cloud.yml \
+            -R "${GITHUB_REPOSITORY}" \
+            -f tag_name="$TARGET_TAG" || echo "Warning: failed to trigger mobile cloud sync"
+          gh workflow run sync-to-quark-cloud.yml \
+            -R "${GITHUB_REPOSITORY}" \
+            -f tag_name="$TARGET_TAG" || echo "Warning: failed to trigger quark cloud sync"
+
   # ── Delta update generation (automatic) ──────────────────────────────
 
   list-delta-bases:
