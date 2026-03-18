@@ -49,6 +49,10 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: sync-to-quark-cloud
+  cancel-in-progress: false
+
 jobs:
   sync-to-quark-cloud:
     runs-on: ubuntu-latest

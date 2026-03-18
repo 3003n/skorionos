@@ -49,6 +49,10 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: sync-to-mobile-cloud
+  cancel-in-progress: false
+
 jobs:
   sync-to-mobile-cloud:
     runs-on: ubuntu-latest
