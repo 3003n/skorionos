@@ -175,6 +175,7 @@ export AUR_PACKAGES="\
 	hhfc-git \
 	hid-msi-claw-dkms-git \
 	inputplumber-git \
+	lenovo-legion-wmi-fan-dkms-git \
 	lib32-extest \
 	linux-firmware-valve \
 	nintendo-udev \
