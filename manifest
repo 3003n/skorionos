@@ -366,6 +366,11 @@ postinstallhook() {
 		fi
 	fi
 
+	# Set cap on required binaries
+	setcap cap_perfmon=+ep /usr/bin/intel_gpu_top
+    setcap 'CAP_SYS_NICE=eip' /usr/bin/gamescope
+    setcap cap_perfmon=+ep /usr/bin/mangohud
+
 	# Disable SPDIF/IEC958 audio output to make it more likely the correct HDMI output will be selected by default
 	sed -e '/\[Mapping iec958/,+5 s/^/#/' -i '/usr/share/alsa-card-profile/mixer/profile-sets/default.conf'
 
