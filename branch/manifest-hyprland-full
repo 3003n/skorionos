@@ -21,6 +21,7 @@ export SUB_AUR_PACKAGES="\
 	$BASE_HYPRLAND_AUR_PACKAGES \
 	bilibili-bin \
 	cursor-bin \
+	github-cli \
 	linuxqq \
 	microsoft-edge-stable-bin \
 	qqmusic-bin \

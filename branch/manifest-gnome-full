@@ -23,6 +23,7 @@ export SUB_AUR_PACKAGES="\
 	$BASE_GNOME_AUR_PACKAGES \
 	bilibili-bin \
 	cursor-bin \
+	github-cli \
 	linuxqq \
 	microsoft-edge-stable-bin \
 	qqmusic-bin \
