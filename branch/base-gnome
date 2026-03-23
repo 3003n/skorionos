@@ -24,6 +24,7 @@ export BASE_GNOME_PACKAGES="\
 	loupe \
 	nautilus \
 	nautilus-python \
+	pavucontrol \
 	xdg-desktop-portal-gnome \
 	xdg-user-dirs-gtk \
 "
