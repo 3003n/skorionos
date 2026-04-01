@@ -199,10 +199,10 @@ parse_version_from_image() {
     echo "$1" | sed -n 's/\(chimeraos\|skorionos\)-\([0-9]\+\(-[0-9]\+\)\?_[a-f0-9]\+\)-.*/\2/p'
 }
 
-# 从增量包文件名中提取目标版本号
-# from-55-2_abc1234-to-55-3_e605458-gnome-core.skdelta -> 55-3_e605458
+# 从增量包文件名中提取目标版本号（目标版本在文件名开头，格式同全量文件）
+# skorionos-55-1_8d604af-gnome-nv.from_56_3bab24e.skdelta -> 55-1_8d604af
 parse_version_from_delta() {
-    echo "$1" | sed -n 's/.*-to-\([0-9]\+\(-[0-9]\+\)\?_[a-f0-9]\+\)-.*/\1/p'
+    parse_version_from_image "$1"
 }
 
 # ── 模式 A: 迁移 ──────────────────────────────────────────────────────
