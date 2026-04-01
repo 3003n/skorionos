@@ -151,10 +151,10 @@ alist_list_dirs() {
 _alist_fs_op() {
     local token="$1" endpoint="$2" payload="$3" op_desc="$4"
     local resp
-    resp=$(curl -s --connect-timeout 15 --max-time 600 -X POST "$ALIST_URL/api/fs/$endpoint" \
+    resp=$(curl -sS --connect-timeout 30 -X POST "$ALIST_URL/api/fs/$endpoint" \
         -H "Authorization: $token" -H "Content-Type: application/json" \
         -d "$payload" 2>&1) || {
-        log_error "${op_desc}: curl 请求失败"
+        log_error "${op_desc}: curl 请求失败: $resp"
         return 1
     }
     local code
