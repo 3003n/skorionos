@@ -13,7 +13,7 @@
 # 必需环境变量: CLOUD_PROVIDER, CLOUD_AUTH
 # 可选环境变量: TARGET_FOLDER, MOBILE_CLOUD_AUTHORIZATION
 
-set -e
+set -eo pipefail
 
 ALIST_URL="http://localhost:5244"
 CLOUD_PROVIDER="${CLOUD_PROVIDER:-quark}"
@@ -116,9 +116,7 @@ cleanup() {
 # 创建目录（幂等）
 alist_mkdir() {
     local token="$1" path="$2"
-    curl -s -X POST "$ALIST_URL/api/fs/mkdir" \
-        -H "Authorization: $token" -H "Content-Type: application/json" \
-        -d "{\"path\":\"$path\"}" | jq -e '.code == 200' >/dev/null
+    _alist_fs_op "$token" "mkdir" "{\"path\":\"$path\"}" "创建目录 $path"
 }
 
 # 列出目录中的文件（非目录），每行输出一个文件名
@@ -126,13 +124,27 @@ alist_list_files() {
     local token="$1" path="$2"
     local page=1 per_page=100
     while true; do
-        local resp=$(curl -s -X POST "$ALIST_URL/api/fs/list" \
+        local resp
+        resp=$(curl -sS --connect-timeout 30 -X POST "$ALIST_URL/api/fs/list" \
             -H "Authorization: $token" -H "Content-Type: application/json" \
-            -d "{\"path\":\"$path\",\"page\":$page,\"per_page\":$per_page}")
-        local items=$(echo "$resp" | jq -r '.data.content[]? | select(.is_dir == false) | .name')
+            -d "{\"path\":\"$path\",\"page\":$page,\"per_page\":$per_page}" 2>&1) || {
+            log_error "列目录失败 ($path): $resp"
+            return 1
+        }
+        local code
+        code=$(echo "$resp" | jq -r '.code // empty' 2>/dev/null)
+        if [ "$code" != "200" ]; then
+            local msg
+            msg=$(echo "$resp" | jq -r '.message // empty' 2>/dev/null)
+            log_error "列目录失败 ($path): 返回码 ${code:-无}, 信息: ${msg:-$resp}"
+            return 1
+        fi
+        local items
+        items=$(echo "$resp" | jq -r '.data.content[]? | select(.is_dir == false) | .name')
         [ -z "$items" ] && break
         echo "$items"
-        local total=$(echo "$resp" | jq -r '.data.total // 0')
+        local total
+        total=$(echo "$resp" | jq -r '.data.total // 0')
         [ $((page * per_page)) -ge "$total" ] && break
         page=$((page + 1))
     done
@@ -141,9 +153,13 @@ alist_list_files() {
 # 列出目录中的子目录，每行输出一个目录名
 alist_list_dirs() {
     local token="$1" path="$2"
-    local resp=$(curl -s -X POST "$ALIST_URL/api/fs/list" \
+    local resp
+    resp=$(curl -sS --connect-timeout 30 -X POST "$ALIST_URL/api/fs/list" \
         -H "Authorization: $token" -H "Content-Type: application/json" \
-        -d "{\"path\":\"$path\",\"per_page\":200}")
+        -d "{\"path\":\"$path\",\"per_page\":200}" 2>&1) || {
+        log_error "列目录失败 ($path): $resp"
+        return 1
+    }
     echo "$resp" | jq -r '.data.content[]? | select(.is_dir == true) | .name'
 }
 
@@ -243,6 +259,7 @@ do_migrate() {
     declare -A full_by_tag
     declare -A delta_by_tag
 
+    local skipped=0
     while IFS= read -r name; do
         [ -z "$name" ] && continue
         local ver=""
@@ -252,17 +269,18 @@ do_migrate() {
             if [ -n "$ver" ]; then
                 delta_by_tag["$ver"]+="$name"$'\n'
             else
-                log_warning "无法从增量文件名解析版本号，保留在根目录: $name"
+                skipped=$((skipped + 1))
             fi
         else
             ver=$(parse_version_from_image "$name")
             if [ -n "$ver" ]; then
                 full_by_tag["$ver"]+="$name"$'\n'
             else
-                log_warning "无法从文件名解析版本号，保留在根目录: $name"
+                skipped=$((skipped + 1))
             fi
         fi
     done <<< "$files"
+    [ "$skipped" -gt 0 ] && log_info "跳过 $skipped 个无法解析版本号的文件（sha256sum/delta-manifest 等），保留在根目录"
 
     # 收集所有涉及的版本号（去重）
     local all_tags=()
@@ -401,57 +419,83 @@ do_update_root() {
 
     log_info "更新根目录兼容文件，版本: $tag"
 
-    # 安全检查：先确认源目录存在且有文件，再执行删除操作
+    # 收集新版本应有的文件（全量 + 增量）
     local tag_files
     tag_files=$(alist_list_files "$token" "$tag_dir")
     if [ -z "$tag_files" ]; then
-        log_error "版本目录不存在或为空: $tag_dir，中止操作以防误删根目录文件"
-        return 1
+        log_warning "版本目录不存在或为空: $tag_dir，跳过该存储的根目录更新"
+        return 0
     fi
 
-    # 清理根目录中的旧文件（只删除文件，不删除子目录）
-    local old_files
-    old_files=$(alist_list_files "$token" "$root_path")
-    if [ -n "$old_files" ]; then
-        local names=()
-        while IFS= read -r n; do
-            [ -n "$n" ] && names+=("$n")
-        done <<< "$old_files"
-        if [ ${#names[@]} -gt 0 ]; then
-            log_info "删除根目录中 ${#names[@]} 个旧兼容文件"
-            alist_remove "$token" "$root_path" "${names[@]}" || \
-                log_warning "部分旧文件删除失败"
-            sleep 2
+    local delta_files
+    delta_files=$(alist_list_files "$token" "$delta_dir")
+
+    # 合并新版本所有文件名（用于对比）
+    local new_files_all=""
+    [ -n "$tag_files" ] && new_files_all="$tag_files"
+    [ -n "$delta_files" ] && new_files_all="${new_files_all:+$new_files_all
+}$delta_files"
+
+    # 获取根目录现有文件
+    local root_files
+    root_files=$(alist_list_files "$token" "$root_path")
+
+    # 找出需要删除的文件（在根目录但不属于新版本）
+    local to_delete=()
+    if [ -n "$root_files" ]; then
+        while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            if ! echo "$new_files_all" | grep -qxF "$name"; then
+                to_delete+=("$name")
+            fi
+        done <<< "$root_files"
+    fi
+
+    if [ ${#to_delete[@]} -gt 0 ]; then
+        log_info "删除根目录中 ${#to_delete[@]} 个旧版本文件"
+        alist_remove "$token" "$root_path" "${to_delete[@]}" || \
+            log_warning "部分旧文件删除失败"
+    fi
+
+    # 找出需要复制的全量文件（在新版本中但根目录缺少）
+    local to_copy_full=()
+    while IFS= read -r name; do
+        [ -z "$name" ] && continue
+        if [ -z "$root_files" ] || ! echo "$root_files" | grep -qxF "$name"; then
+            to_copy_full+=("$name")
         fi
-    fi
-
-    # 从 {tag}/ 复制全量文件到根目录
-    local full_names=()
-    while IFS= read -r n; do
-        [ -n "$n" ] && full_names+=("$n")
     done <<< "$tag_files"
-    if [ ${#full_names[@]} -gt 0 ]; then
-        log_info "从 $tag_dir 复制 ${#full_names[@]} 个全量文件到根目录"
-        alist_copy "$token" "$tag_dir" "$root_path" "${full_names[@]}" || \
+
+    if [ ${#to_copy_full[@]} -gt 0 ]; then
+        log_info "从 $tag_dir 复制 ${#to_copy_full[@]} 个全量文件到根目录"
+        alist_copy "$token" "$tag_dir" "$root_path" "${to_copy_full[@]}" || \
             log_warning "部分全量文件复制失败"
     fi
 
-    # 从 {tag}/delta/ 复制增量文件到根目录
-    local delta_files
-    delta_files=$(alist_list_files "$token" "$delta_dir")
+    # 找出需要复制的增量文件
     if [ -n "$delta_files" ]; then
-        local names=()
-        while IFS= read -r n; do
-            [ -n "$n" ] && names+=("$n")
+        local to_copy_delta=()
+        while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            if [ -z "$root_files" ] || ! echo "$root_files" | grep -qxF "$name"; then
+                to_copy_delta+=("$name")
+            fi
         done <<< "$delta_files"
-        if [ ${#names[@]} -gt 0 ]; then
-            log_info "从 $delta_dir 复制 ${#names[@]} 个增量文件到根目录"
-            alist_copy "$token" "$delta_dir" "$root_path" "${names[@]}" || \
+
+        if [ ${#to_copy_delta[@]} -gt 0 ]; then
+            log_info "从 $delta_dir 复制 ${#to_copy_delta[@]} 个增量文件到根目录"
+            alist_copy "$token" "$delta_dir" "$root_path" "${to_copy_delta[@]}" || \
                 log_warning "部分增量文件复制失败"
         fi
     fi
 
-    log_success "根目录兼容文件已更新，版本: $tag"
+    local deleted=${#to_delete[@]}
+    local copied=$((${#to_copy_full[@]} + ${#to_copy_delta[@]:-0}))
+    if [ "$deleted" -eq 0 ] && [ "$copied" -eq 0 ]; then
+        log_success "根目录文件已是最新版本 ($tag)，无需更新"
+    else
+        log_success "根目录兼容文件已更新，版本: $tag (删除 $deleted, 复制 $copied)"
+    fi
 }
 
 # ── 主函数 ─────────────────────────────────────────────────────────────
@@ -466,6 +510,8 @@ main() {
     local token=$(get_alist_token "$admin_pw")
     local sid=$(mount_cloud_storage "$token")
 
+    trap 'cleanup "$token" "$sid"' EXIT
+
     # 等待存储就绪
     sleep 5
 
@@ -474,17 +520,15 @@ main() {
             do_migrate "$token" "$tag"
             ;;
         update-root)
-            [ -z "$tag" ] && { log_error "update-root 模式需要指定 tag 参数"; cleanup "$token" "$sid"; exit 1; }
+            [ -z "$tag" ] && { log_error "update-root 模式需要指定 tag 参数"; exit 1; }
             do_update_root "$token" "$tag"
             ;;
         *)
             log_error "未知模式: $mode (支持: migrate, update-root)"
-            cleanup "$token" "$sid"
             exit 1
             ;;
     esac
 
-    cleanup "$token" "$sid"
     log_success "操作完成"
 }
 
