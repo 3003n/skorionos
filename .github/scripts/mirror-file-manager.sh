@@ -301,18 +301,31 @@ do_migrate() {
                 fi
             done
 
+            local is_latest=false
+            [ "$tag" = "$latest_tag" ] && is_latest=true
+
             if [ ${#to_delete[@]} -gt 0 ]; then
-                log_info "[$tag_count/${#all_tags[@]}] 删除 ${#to_delete[@]} 个根目录中的重复全量文件 ($tag)"
-                alist_remove "$token" "$root_path" "${to_delete[@]}" || \
-                    log_warning "部分重复文件删除失败"
-                total_deleted=$((total_deleted + ${#to_delete[@]}))
+                if $is_latest; then
+                    log_info "[$tag_count/${#all_tags[@]}] 跳过删除 ${#to_delete[@]} 个根目录全量文件 ($tag 是最新稳定版，需保留)"
+                else
+                    log_info "[$tag_count/${#all_tags[@]}] 删除 ${#to_delete[@]} 个根目录中的重复全量文件 ($tag)"
+                    alist_remove "$token" "$root_path" "${to_delete[@]}" || \
+                        log_warning "部分重复文件删除失败"
+                    total_deleted=$((total_deleted + ${#to_delete[@]}))
+                fi
             fi
             if [ ${#to_move[@]} -gt 0 ]; then
-                log_info "[$tag_count/${#all_tags[@]}] 移动 ${#to_move[@]} 个全量文件到 $tag_dir"
-                if alist_move "$token" "$root_path" "$tag_dir" "${to_move[@]}"; then
-                    total_moved=$((total_moved + ${#to_move[@]}))
+                if $is_latest; then
+                    log_info "[$tag_count/${#all_tags[@]}] 复制 ${#to_move[@]} 个全量文件到 $tag_dir (保留根目录副本)"
+                    alist_copy "$token" "$root_path" "$tag_dir" "${to_move[@]}" || \
+                        log_warning "全量文件复制失败: $tag_dir"
                 else
-                    log_warning "全量文件移动失败: $tag_dir"
+                    log_info "[$tag_count/${#all_tags[@]}] 移动 ${#to_move[@]} 个全量文件到 $tag_dir"
+                    if alist_move "$token" "$root_path" "$tag_dir" "${to_move[@]}"; then
+                        total_moved=$((total_moved + ${#to_move[@]}))
+                    else
+                        log_warning "全量文件移动失败: $tag_dir"
+                    fi
                 fi
             else
                 log_info "[$tag_count/${#all_tags[@]}] 全量文件已全部存在于 $tag_dir，跳过"
@@ -338,18 +351,31 @@ do_migrate() {
                 fi
             done
 
+            local is_latest=false
+            [ "$tag" = "$latest_tag" ] && is_latest=true
+
             if [ ${#to_delete[@]} -gt 0 ]; then
-                log_info "[$tag_count/${#all_tags[@]}] 删除 ${#to_delete[@]} 个根目录中的重复增量文件 ($tag)"
-                alist_remove "$token" "$root_path" "${to_delete[@]}" || \
-                    log_warning "部分重复文件删除失败"
-                total_deleted=$((total_deleted + ${#to_delete[@]}))
+                if $is_latest; then
+                    log_info "[$tag_count/${#all_tags[@]}] 跳过删除 ${#to_delete[@]} 个根目录增量文件 ($tag 是最新稳定版，需保留)"
+                else
+                    log_info "[$tag_count/${#all_tags[@]}] 删除 ${#to_delete[@]} 个根目录中的重复增量文件 ($tag)"
+                    alist_remove "$token" "$root_path" "${to_delete[@]}" || \
+                        log_warning "部分重复文件删除失败"
+                    total_deleted=$((total_deleted + ${#to_delete[@]}))
+                fi
             fi
             if [ ${#to_move[@]} -gt 0 ]; then
-                log_info "[$tag_count/${#all_tags[@]}] 移动 ${#to_move[@]} 个增量文件到 $delta_dir"
-                if alist_move "$token" "$root_path" "$delta_dir" "${to_move[@]}"; then
-                    total_moved=$((total_moved + ${#to_move[@]}))
+                if $is_latest; then
+                    log_info "[$tag_count/${#all_tags[@]}] 复制 ${#to_move[@]} 个增量文件到 $delta_dir (保留根目录副本)"
+                    alist_copy "$token" "$root_path" "$delta_dir" "${to_move[@]}" || \
+                        log_warning "增量文件复制失败: $delta_dir"
                 else
-                    log_warning "增量文件移动失败: $delta_dir"
+                    log_info "[$tag_count/${#all_tags[@]}] 移动 ${#to_move[@]} 个增量文件到 $delta_dir"
+                    if alist_move "$token" "$root_path" "$delta_dir" "${to_move[@]}"; then
+                        total_moved=$((total_moved + ${#to_move[@]}))
+                    else
+                        log_warning "增量文件移动失败: $delta_dir"
+                    fi
                 fi
             else
                 log_info "[$tag_count/${#all_tags[@]}] 增量文件已全部存在于 $delta_dir，跳过"
@@ -359,10 +385,8 @@ do_migrate() {
 
     log_success "迁移完成，共处理 ${#all_tags[@]} 个版本目录，移动 ${total_moved} 个文件，删除 ${total_deleted} 个重复文件"
 
-    # 如果指定了最新稳定版 tag，将其文件复制回根目录（向下兼容）
     if [ -n "$latest_tag" ]; then
-        log_info "将最新稳定版 ($latest_tag) 的文件复制到根目录（向下兼容）..."
-        do_update_root "$token" "$latest_tag"
+        log_info "最新稳定版 ($latest_tag) 的文件已保留在根目录（向下兼容）"
     fi
 }
 
