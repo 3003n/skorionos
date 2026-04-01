@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release tag to process (leave empty for latest stable)'
+        description: '要处理的 Release tag（留空则自动获取最新稳定版）'
         required: false
         type: string
       mode:
-        description: 'Operation mode'
+        description: '操作模式（⚠️ migrate 会移动根目录现有文件到子目录）'
         required: false
         type: choice
         default: update-root

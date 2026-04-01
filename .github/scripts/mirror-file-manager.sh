@@ -310,6 +310,14 @@ do_update_root() {
 
     log_info "更新根目录兼容文件，版本: $tag"
 
+    # 安全检查：先确认源目录存在且有文件，再执行删除操作
+    local tag_files
+    tag_files=$(alist_list_files "$token" "$tag_dir")
+    if [ -z "$tag_files" ]; then
+        log_error "版本目录不存在或为空: $tag_dir，中止操作以防误删根目录文件"
+        return 1
+    fi
+
     # 清理根目录中的旧文件（只删除文件，不删除子目录）
     local old_files
     old_files=$(alist_list_files "$token" "$root_path")
@@ -327,20 +335,14 @@ do_update_root() {
     fi
 
     # 从 {tag}/ 复制全量文件到根目录
-    local tag_files
-    tag_files=$(alist_list_files "$token" "$tag_dir")
-    if [ -n "$tag_files" ]; then
-        local names=()
-        while IFS= read -r n; do
-            [ -n "$n" ] && names+=("$n")
-        done <<< "$tag_files"
-        if [ ${#names[@]} -gt 0 ]; then
-            log_info "从 $tag_dir 复制 ${#names[@]} 个全量文件到根目录"
-            alist_copy "$token" "$tag_dir" "$root_path" "${names[@]}" || \
-                log_warning "部分全量文件复制失败"
-        fi
-    else
-        log_warning "版本目录中没有找到全量文件: $tag_dir"
+    local full_names=()
+    while IFS= read -r n; do
+        [ -n "$n" ] && full_names+=("$n")
+    done <<< "$tag_files"
+    if [ ${#full_names[@]} -gt 0 ]; then
+        log_info "从 $tag_dir 复制 ${#full_names[@]} 个全量文件到根目录"
+        alist_copy "$token" "$tag_dir" "$root_path" "${full_names[@]}" || \
+            log_warning "部分全量文件复制失败"
     fi
 
     # 从 {tag}/delta/ 复制增量文件到根目录
