@@ -274,7 +274,7 @@ do_migrate() {
         $found || all_tags+=("$tag")
     done
 
-    # 将文件批量复制到对应的版本目录（每个 tag 一次 API 调用）
+    # 将文件批量复制到对应的版本目录（每个 tag 一次 API 调用，跳过已存在的）
     local all_migrated=()
     local tag_count=0
     for tag in "${all_tags[@]}"; do
@@ -283,32 +283,67 @@ do_migrate() {
         local delta_dir="$tag_dir/delta"
         alist_mkdir "$token" "$tag_dir" || true
 
-        # 批量复制全量文件
+        # 批量复制全量文件（跳过目标目录已有的）
         if [ -n "${full_by_tag[$tag]:-}" ]; then
             local names=()
             while IFS= read -r n; do
                 [ -n "$n" ] && names+=("$n")
             done <<< "${full_by_tag[$tag]}"
-            log_info "[$tag_count/${#all_tags[@]}] 复制 ${#names[@]} 个全量文件到 $tag_dir"
-            if alist_copy "$token" "$root_path" "$tag_dir" "${names[@]}"; then
-                all_migrated+=("${names[@]}")
+
+            local existing
+            existing=$(alist_list_files "$token" "$tag_dir")
+            local to_copy=() already=()
+            for fname in "${names[@]}"; do
+                if echo "$existing" | grep -qxF "$fname"; then
+                    already+=("$fname")
+                else
+                    to_copy+=("$fname")
+                fi
+            done
+
+            # 已存在的文件可以安全从根目录删除
+            all_migrated+=("${already[@]}")
+            if [ ${#to_copy[@]} -gt 0 ]; then
+                log_info "[$tag_count/${#all_tags[@]}] 复制 ${#to_copy[@]} 个全量文件到 $tag_dir (跳过 ${#already[@]} 个已存在)"
+                if alist_copy "$token" "$root_path" "$tag_dir" "${to_copy[@]}"; then
+                    all_migrated+=("${to_copy[@]}")
+                else
+                    log_warning "全量文件复制失败: $tag_dir"
+                fi
             else
-                log_warning "全量文件复制失败: $tag_dir"
+                log_info "[$tag_count/${#all_tags[@]}] 全量文件已全部存在于 $tag_dir，跳过"
             fi
         fi
 
-        # 批量复制增量文件
+        # 批量复制增量文件（跳过目标目录已有的）
         if [ -n "${delta_by_tag[$tag]:-}" ]; then
             alist_mkdir "$token" "$delta_dir" || true
             local names=()
             while IFS= read -r n; do
                 [ -n "$n" ] && names+=("$n")
             done <<< "${delta_by_tag[$tag]}"
-            log_info "[$tag_count/${#all_tags[@]}] 复制 ${#names[@]} 个增量文件到 $delta_dir"
-            if alist_copy "$token" "$root_path" "$delta_dir" "${names[@]}"; then
-                all_migrated+=("${names[@]}")
+
+            local existing
+            existing=$(alist_list_files "$token" "$delta_dir")
+            local to_copy=() already=()
+            for fname in "${names[@]}"; do
+                if echo "$existing" | grep -qxF "$fname"; then
+                    already+=("$fname")
+                else
+                    to_copy+=("$fname")
+                fi
+            done
+
+            all_migrated+=("${already[@]}")
+            if [ ${#to_copy[@]} -gt 0 ]; then
+                log_info "[$tag_count/${#all_tags[@]}] 复制 ${#to_copy[@]} 个增量文件到 $delta_dir (跳过 ${#already[@]} 个已存在)"
+                if alist_copy "$token" "$root_path" "$delta_dir" "${to_copy[@]}"; then
+                    all_migrated+=("${to_copy[@]}")
+                else
+                    log_warning "增量文件复制失败: $delta_dir"
+                fi
             else
-                log_warning "增量文件复制失败: $delta_dir"
+                log_info "[$tag_count/${#all_tags[@]}] 增量文件已全部存在于 $delta_dir，跳过"
             fi
         fi
     done
