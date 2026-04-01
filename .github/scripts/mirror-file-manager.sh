@@ -147,15 +147,35 @@ alist_list_dirs() {
     echo "$resp" | jq -r '.data.content[]? | select(.is_dir == true) | .name'
 }
 
+# 通用 Alist 文件操作（带超时和错误日志）
+_alist_fs_op() {
+    local token="$1" endpoint="$2" payload="$3" op_desc="$4"
+    local resp
+    resp=$(curl -s --connect-timeout 15 --max-time 300 -X POST "$ALIST_URL/api/fs/$endpoint" \
+        -H "Authorization: $token" -H "Content-Type: application/json" \
+        -d "$payload" 2>&1) || {
+        log_error "${op_desc}: curl 请求失败"
+        return 1
+    }
+    local code
+    code=$(echo "$resp" | jq -r '.code // empty' 2>/dev/null)
+    if [ "$code" != "200" ]; then
+        local msg
+        msg=$(echo "$resp" | jq -r '.message // empty' 2>/dev/null)
+        log_error "${op_desc}: 返回码 ${code:-无}, 信息: ${msg:-$resp}"
+        return 1
+    fi
+    return 0
+}
+
 # 复制文件
 alist_copy() {
     local token="$1" src_dir="$2" dst_dir="$3"
     shift 3
     local names_json=$(printf '%s\n' "$@" | jq -R . | jq -s .)
-    curl -s -X POST "$ALIST_URL/api/fs/copy" \
-        -H "Authorization: $token" -H "Content-Type: application/json" \
-        -d "{\"src_dir\":\"$src_dir\",\"dst_dir\":\"$dst_dir\",\"names\":$names_json}" | \
-        jq -e '.code == 200' >/dev/null
+    _alist_fs_op "$token" "copy" \
+        "{\"src_dir\":\"$src_dir\",\"dst_dir\":\"$dst_dir\",\"names\":$names_json}" \
+        "复制 $src_dir -> $dst_dir ($# 个文件)"
 }
 
 # 移动文件
@@ -163,10 +183,9 @@ alist_move() {
     local token="$1" src_dir="$2" dst_dir="$3"
     shift 3
     local names_json=$(printf '%s\n' "$@" | jq -R . | jq -s .)
-    curl -s -X POST "$ALIST_URL/api/fs/move" \
-        -H "Authorization: $token" -H "Content-Type: application/json" \
-        -d "{\"src_dir\":\"$src_dir\",\"dst_dir\":\"$dst_dir\",\"names\":$names_json}" | \
-        jq -e '.code == 200' >/dev/null
+    _alist_fs_op "$token" "move" \
+        "{\"src_dir\":\"$src_dir\",\"dst_dir\":\"$dst_dir\",\"names\":$names_json}" \
+        "移动 $src_dir -> $dst_dir ($# 个文件)"
 }
 
 # 删除文件
@@ -175,10 +194,9 @@ alist_remove() {
     shift 2
     [ $# -eq 0 ] && return 0
     local names_json=$(printf '%s\n' "$@" | jq -R . | jq -s .)
-    curl -s -X POST "$ALIST_URL/api/fs/remove" \
-        -H "Authorization: $token" -H "Content-Type: application/json" \
-        -d "{\"dir\":\"$dir\",\"names\":$names_json}" | \
-        jq -e '.code == 200' >/dev/null
+    _alist_fs_op "$token" "remove" \
+        "{\"dir\":\"$dir\",\"names\":$names_json}" \
+        "删除 $dir ($# 个文件)"
 }
 
 # ── 文件分类辅助函数 ──────────────────────────────────────────────────
@@ -256,41 +274,57 @@ do_migrate() {
         $found || all_tags+=("$tag")
     done
 
-    # 将文件移动到对应的版本目录
+    # 将文件复制到对应的版本目录（copy 比 move 快，云盘通常支持服务端 copy）
+    local all_migrated=()
     for tag in "${all_tags[@]}"; do
         local tag_dir="$root_path/$tag"
         local delta_dir="$tag_dir/delta"
         alist_mkdir "$token" "$tag_dir" || true
         alist_mkdir "$token" "$delta_dir" || true
 
-        # 移动全量文件
+        # 复制全量文件
         if [ -n "${full_by_tag[$tag]:-}" ]; then
             local names=()
             while IFS= read -r n; do
                 [ -n "$n" ] && names+=("$n")
             done <<< "${full_by_tag[$tag]}"
-            if [ ${#names[@]} -gt 0 ]; then
-                log_info "移动 ${#names[@]} 个全量文件到 $tag_dir"
-                alist_move "$token" "$root_path" "$tag_dir" "${names[@]}" || \
-                    log_warning "部分全量文件移动失败: $tag_dir"
-            fi
+            log_info "复制 ${#names[@]} 个全量文件到 $tag_dir"
+            for fname in "${names[@]}"; do
+                log_info "  复制: $fname"
+                if alist_copy "$token" "$root_path" "$tag_dir" "$fname"; then
+                    all_migrated+=("$fname")
+                else
+                    log_warning "  复制失败: $fname"
+                fi
+            done
         fi
 
-        # 移动增量文件
+        # 复制增量文件
         if [ -n "${delta_by_tag[$tag]:-}" ]; then
             local names=()
             while IFS= read -r n; do
                 [ -n "$n" ] && names+=("$n")
             done <<< "${delta_by_tag[$tag]}"
-            if [ ${#names[@]} -gt 0 ]; then
-                log_info "移动 ${#names[@]} 个增量文件到 $delta_dir"
-                alist_move "$token" "$root_path" "$delta_dir" "${names[@]}" || \
-                    log_warning "部分增量文件移动失败: $delta_dir"
-            fi
+            log_info "复制 ${#names[@]} 个增量文件到 $delta_dir"
+            for fname in "${names[@]}"; do
+                log_info "  复制: $fname"
+                if alist_copy "$token" "$root_path" "$delta_dir" "$fname"; then
+                    all_migrated+=("$fname")
+                else
+                    log_warning "  复制失败: $fname"
+                fi
+            done
         fi
     done
 
-    log_success "迁移完成，共创建 ${#all_tags[@]} 个版本目录"
+    # 复制全部成功后，统一删除根目录中的原文件
+    if [ ${#all_migrated[@]} -gt 0 ]; then
+        log_info "删除根目录中 ${#all_migrated[@]} 个已迁移的原文件..."
+        alist_remove "$token" "$root_path" "${all_migrated[@]}" || \
+            log_warning "部分原文件删除失败，请手动检查"
+    fi
+
+    log_success "迁移完成，共创建 ${#all_tags[@]} 个版本目录，迁移 ${#all_migrated[@]} 个文件"
 
     # 如果指定了最新稳定版 tag，将其文件复制回根目录（向下兼容）
     if [ -n "$latest_tag" ]; then
