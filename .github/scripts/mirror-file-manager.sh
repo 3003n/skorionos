@@ -274,16 +274,16 @@ do_migrate() {
         $found || all_tags+=("$tag")
     done
 
-    # 将文件批量复制到对应的版本目录（每个 tag 一次 API 调用，跳过已存在的）
-    local all_migrated=()
+    # 迁移文件到版本目录：已存在的删除根目录副本，不存在的 move 过去
     local tag_count=0
+    local total_moved=0 total_deleted=0
     for tag in "${all_tags[@]}"; do
         tag_count=$((tag_count + 1))
         local tag_dir="$root_path/$tag"
         local delta_dir="$tag_dir/delta"
         alist_mkdir "$token" "$tag_dir" || true
 
-        # 批量复制全量文件（跳过目标目录已有的）
+        # 处理全量文件
         if [ -n "${full_by_tag[$tag]:-}" ]; then
             local names=()
             while IFS= read -r n; do
@@ -292,30 +292,34 @@ do_migrate() {
 
             local existing
             existing=$(alist_list_files "$token" "$tag_dir")
-            local to_copy=() already=()
+            local to_move=() to_delete=()
             for fname in "${names[@]}"; do
                 if echo "$existing" | grep -qxF "$fname"; then
-                    already+=("$fname")
+                    to_delete+=("$fname")
                 else
-                    to_copy+=("$fname")
+                    to_move+=("$fname")
                 fi
             done
 
-            # 已存在的文件可以安全从根目录删除
-            all_migrated+=("${already[@]}")
-            if [ ${#to_copy[@]} -gt 0 ]; then
-                log_info "[$tag_count/${#all_tags[@]}] 复制 ${#to_copy[@]} 个全量文件到 $tag_dir (跳过 ${#already[@]} 个已存在)"
-                if alist_copy "$token" "$root_path" "$tag_dir" "${to_copy[@]}"; then
-                    all_migrated+=("${to_copy[@]}")
+            if [ ${#to_delete[@]} -gt 0 ]; then
+                log_info "[$tag_count/${#all_tags[@]}] 删除 ${#to_delete[@]} 个根目录中的重复全量文件 ($tag)"
+                alist_remove "$token" "$root_path" "${to_delete[@]}" || \
+                    log_warning "部分重复文件删除失败"
+                total_deleted=$((total_deleted + ${#to_delete[@]}))
+            fi
+            if [ ${#to_move[@]} -gt 0 ]; then
+                log_info "[$tag_count/${#all_tags[@]}] 移动 ${#to_move[@]} 个全量文件到 $tag_dir"
+                if alist_move "$token" "$root_path" "$tag_dir" "${to_move[@]}"; then
+                    total_moved=$((total_moved + ${#to_move[@]}))
                 else
-                    log_warning "全量文件复制失败: $tag_dir"
+                    log_warning "全量文件移动失败: $tag_dir"
                 fi
             else
                 log_info "[$tag_count/${#all_tags[@]}] 全量文件已全部存在于 $tag_dir，跳过"
             fi
         fi
 
-        # 批量复制增量文件（跳过目标目录已有的）
+        # 处理增量文件
         if [ -n "${delta_by_tag[$tag]:-}" ]; then
             alist_mkdir "$token" "$delta_dir" || true
             local names=()
@@ -325,22 +329,27 @@ do_migrate() {
 
             local existing
             existing=$(alist_list_files "$token" "$delta_dir")
-            local to_copy=() already=()
+            local to_move=() to_delete=()
             for fname in "${names[@]}"; do
                 if echo "$existing" | grep -qxF "$fname"; then
-                    already+=("$fname")
+                    to_delete+=("$fname")
                 else
-                    to_copy+=("$fname")
+                    to_move+=("$fname")
                 fi
             done
 
-            all_migrated+=("${already[@]}")
-            if [ ${#to_copy[@]} -gt 0 ]; then
-                log_info "[$tag_count/${#all_tags[@]}] 复制 ${#to_copy[@]} 个增量文件到 $delta_dir (跳过 ${#already[@]} 个已存在)"
-                if alist_copy "$token" "$root_path" "$delta_dir" "${to_copy[@]}"; then
-                    all_migrated+=("${to_copy[@]}")
+            if [ ${#to_delete[@]} -gt 0 ]; then
+                log_info "[$tag_count/${#all_tags[@]}] 删除 ${#to_delete[@]} 个根目录中的重复增量文件 ($tag)"
+                alist_remove "$token" "$root_path" "${to_delete[@]}" || \
+                    log_warning "部分重复文件删除失败"
+                total_deleted=$((total_deleted + ${#to_delete[@]}))
+            fi
+            if [ ${#to_move[@]} -gt 0 ]; then
+                log_info "[$tag_count/${#all_tags[@]}] 移动 ${#to_move[@]} 个增量文件到 $delta_dir"
+                if alist_move "$token" "$root_path" "$delta_dir" "${to_move[@]}"; then
+                    total_moved=$((total_moved + ${#to_move[@]}))
                 else
-                    log_warning "增量文件复制失败: $delta_dir"
+                    log_warning "增量文件移动失败: $delta_dir"
                 fi
             else
                 log_info "[$tag_count/${#all_tags[@]}] 增量文件已全部存在于 $delta_dir，跳过"
@@ -348,14 +357,7 @@ do_migrate() {
         fi
     done
 
-    # 复制完成后，统一删除根目录中的原文件
-    if [ ${#all_migrated[@]} -gt 0 ]; then
-        log_info "删除根目录中 ${#all_migrated[@]} 个已迁移的原文件..."
-        alist_remove "$token" "$root_path" "${all_migrated[@]}" || \
-            log_warning "部分原文件删除失败，请手动检查"
-    fi
-
-    log_success "迁移完成，共处理 ${#all_tags[@]} 个版本目录，迁移 ${#all_migrated[@]} 个文件"
+    log_success "迁移完成，共处理 ${#all_tags[@]} 个版本目录，移动 ${total_moved} 个文件，删除 ${total_deleted} 个重复文件"
 
     # 如果指定了最新稳定版 tag，将其文件复制回根目录（向下兼容）
     if [ -n "$latest_tag" ]; then
