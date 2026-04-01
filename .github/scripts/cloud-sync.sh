@@ -807,44 +807,86 @@ restore_alist_threads() {
     log_success "原始线程配置已恢复"
 }
 
-# 创建目标目录
+# 判断文件是否属于增量更新类型
+is_delta_file() {
+    local filename="$1"
+    case "$filename" in
+        *.skdelta|delta-manifest-*.json)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# 将下载列表按文件类型拆分为全量和增量两个列表
+split_download_list() {
+    local input_file="$1"
+    local full_output="$2"
+    local delta_output="$3"
+
+    true > "$full_output"
+    true > "$delta_output"
+
+    while IFS='|' read -r url filename filesize; do
+        [ -z "$url" ] && continue
+        if is_delta_file "$filename"; then
+            echo "$url|$filename|$filesize" >> "$delta_output"
+        else
+            echo "$url|$filename|$filesize" >> "$full_output"
+        fi
+    done < "$input_file"
+}
+
+# 通过 Alist API 创建单个目录（幂等操作）
+alist_mkdir() {
+    local alist_token="$1"
+    local dir_path="$2"
+
+    local mkdir_response=$(curl -s -w "HTTP_CODE:%{http_code}" -X POST "$ALIST_URL/api/fs/mkdir" \
+        -H "Authorization: $alist_token" \
+        -H "Content-Type: application/json" \
+        -d "{\"path\": \"$dir_path\"}")
+
+    local http_code=$(echo "$mkdir_response" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
+    local response_body=$(echo "$mkdir_response" | sed 's/HTTP_CODE:[0-9]*$//')
+
+    if [ "$http_code" != "200" ]; then
+        log_error "创建目录HTTP请求失败 ($dir_path)，状态码: $http_code"
+        log_error "响应内容: $response_body"
+        return 1
+    fi
+
+    if ! check_api_response "$response_body" "创建目录 $dir_path"; then
+        return 1
+    fi
+
+    if echo "$response_body" | jq -e '.code == 200' > /dev/null || echo "$response_body" | jq -r '.message' | grep -q "already exists"; then
+        return 0
+    fi
+
+    log_error "目录创建失败 ($dir_path): $(echo "$response_body" | jq -r '.message // "未知错误"')"
+    return 1
+}
+
+# 创建目标目录（tag 级别 + delta 子目录）
 create_target_directory() {
     local alist_token="$1"
     local tag_name="$2"
     
-    local target_path="$STORAGE_MOUNT_PATH/$TARGET_FOLDER"
+    local base_path="$STORAGE_MOUNT_PATH/$TARGET_FOLDER"
+    local tag_path="$base_path/$tag_name"
+    local delta_path="$tag_path/delta"
     
-    log_info "创建目标目录: $target_path"
+    log_info "创建目录结构: $tag_path (+ delta/)"
     
-    local mkdir_response=$(curl -s -w "HTTP_CODE:%{http_code}" -X POST "$ALIST_URL/api/fs/mkdir" \
-        -H "Authorization: $alist_token" \
-        -H "Content-Type: application/json" \
-        -d "{\"path\": \"$target_path\"}")
+    alist_mkdir "$alist_token" "$base_path" || exit 1
+    alist_mkdir "$alist_token" "$tag_path" || exit 1
+    alist_mkdir "$alist_token" "$delta_path" || exit 1
     
-    # 分离HTTP状态码和响应体
-    local http_code=$(echo "$mkdir_response" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
-    local response_body=$(echo "$mkdir_response" | sed 's/HTTP_CODE:[0-9]*$//')
-    
-    log_info "调试: 创建目录HTTP状态码: $http_code"
-    log_info "调试: 创建目录响应: '$response_body'"
-    
-    if [ "$http_code" != "200" ]; then
-        log_error "创建目录HTTP请求失败，状态码: $http_code"
-        log_error "响应内容: $response_body"
-        exit 1
-    fi
-    
-    if ! check_api_response "$response_body" "创建目录"; then
-        exit 1
-    fi
-    
-    if echo "$response_body" | jq -e '.code == 200' > /dev/null || echo "$response_body" | jq -r '.message' | grep -q "already exists"; then
-        log_success "目标目录准备完成"
-        echo "$target_path"
-    else
-        log_error "目标目录创建失败: $(echo "$response_body" | jq -r '.message // "未知错误"')"
-        exit 1
-    fi
+    log_success "目标目录结构准备完成: $tag_path"
+    echo "$tag_path"
 }
 
 # 检查已存在文件
@@ -1519,7 +1561,7 @@ cleanup() {
     if [ -d "/tmp/alist-data" ]; then
         sudo rm -rf /tmp/alist-data || rm -rf /tmp/alist-data || log_warning "无法删除 /tmp/alist-data，可能需要手动清理"
     fi
-    rm -f /tmp/download_list.txt || true
+    rm -f /tmp/download_list.txt /tmp/download_list_full.txt /tmp/download_list_delta.txt || true
     rm -f /tmp/undone_tasks.txt /tmp/done_tasks.txt /tmp/transfer_undone.txt /tmp/transfer_done.txt || true
     
     log_success "清理完成"
@@ -1567,26 +1609,56 @@ main() {
     # 配置线程数（仅在批量模式下）
     configure_alist_threads "$alist_token" "$BATCH_DOWNLOAD_THREADS" "$BATCH_TRANSFER_THREADS"
     
-    # 创建目标目录
-    local target_path=$(create_target_directory "$alist_token" "$release_tag")
+    # 创建目标目录（{base}/{tag}/ 和 {base}/{tag}/delta/）
+    local tag_path=$(create_target_directory "$alist_token" "$release_tag")
+    local delta_path="$tag_path/delta"
     
-    # 检查已存在文件
-    if ! check_existing_files "$alist_token" "$target_path" "$FORCE_SYNC" "/tmp/download_list.txt"; then
-        cleanup "$alist_token" "$storage_id"
-        log_warning "同步已跳过"
-        return 0
+    # 按文件类型拆分下载列表（全量/增量）
+    split_download_list "/tmp/download_list.txt" "/tmp/download_list_full.txt" "/tmp/download_list_delta.txt"
+    
+    local full_count=$(wc -l < /tmp/download_list_full.txt)
+    local delta_count=$(wc -l < /tmp/download_list_delta.txt)
+    log_info "文件分类: 全量 ${full_count} 个, 增量 ${delta_count} 个"
+    
+    # 上传全量文件到 {tag}/
+    local success_full=0
+    if [ "$full_count" -gt 0 ]; then
+        log_info "── 上传全量文件到 $tag_path ──"
+        if ! check_existing_files "$alist_token" "$tag_path" "$FORCE_SYNC" "/tmp/download_list_full.txt"; then
+            log_warning "全量文件已全部存在，跳过"
+        else
+            if [ "$USE_BATCH_DOWNLOAD" = "true" ]; then
+                success_full=$(upload_files_batch "$alist_token" "$tag_path" "/tmp/download_list_full.txt")
+            else
+                success_full=$(upload_files "$alist_token" "$tag_path" "/tmp/download_list_full.txt")
+            fi
+        fi
     fi
     
-    # 上传文件（根据配置选择模式）
-    local success_count
-    if [ "$USE_BATCH_DOWNLOAD" = "true" ]; then
-        success_count=$(upload_files_batch "$alist_token" "$target_path" "/tmp/download_list.txt")
-    else
-        success_count=$(upload_files "$alist_token" "$target_path" "/tmp/download_list.txt")
+    # 上传增量文件到 {tag}/delta/
+    local success_delta=0
+    if [ "$delta_count" -gt 0 ]; then
+        log_info "── 上传增量文件到 $delta_path ──"
+        if ! check_existing_files "$alist_token" "$delta_path" "$FORCE_SYNC" "/tmp/download_list_delta.txt"; then
+            log_warning "增量文件已全部存在，跳过"
+        else
+            if [ "$USE_BATCH_DOWNLOAD" = "true" ]; then
+                success_delta=$(upload_files_batch "$alist_token" "$delta_path" "/tmp/download_list_delta.txt")
+            else
+                success_delta=$(upload_files "$alist_token" "$delta_path" "/tmp/download_list_delta.txt")
+            fi
+        fi
     fi
     
-    # 验证结果
-    local final_count=$(verify_upload "$alist_token" "$target_path" "/tmp/download_list.txt")
+    # 验证两个目录的上传结果
+    local final_full=0 final_delta=0
+    if [ "$full_count" -gt 0 ]; then
+        final_full=$(verify_upload "$alist_token" "$tag_path" "/tmp/download_list_full.txt")
+    fi
+    if [ "$delta_count" -gt 0 ]; then
+        final_delta=$(verify_upload "$alist_token" "$delta_path" "/tmp/download_list_delta.txt")
+    fi
+    local final_count=$((final_full + final_delta))
     
     # 清理资源
     cleanup "$alist_token" "$storage_id"
@@ -1595,7 +1667,7 @@ main() {
     echo "================================================"
     log_success "SkorionOS $release_tag 同步完成！"
     log_success "📱 目标: ${CLOUD_PROVIDER}云盘 (${CLOUD_DRIVER})"
-    log_success "📁 路径: $target_path"
+    log_success "📁 路径: $tag_path (全量: $final_full, 增量: $final_delta)"
     log_success "📊 成功文件数: $final_count"
     log_success "🎯 文件过滤: $FILE_FILTER_RULES"
     if [ "$USE_BATCH_DOWNLOAD" = "true" ]; then

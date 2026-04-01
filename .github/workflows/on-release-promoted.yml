@@ -1,0 +1,100 @@
+name: On Release Promoted
+
+on:
+  release:
+    types: [released]
+
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag to process (leave empty for latest stable)'
+        required: false
+        type: string
+      mode:
+        description: 'Operation mode'
+        required: false
+        type: choice
+        default: update-root
+        options:
+          - update-root
+          - migrate
+
+concurrency:
+  group: on-release-promoted
+  cancel-in-progress: false
+
+jobs:
+  get-release-info:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.info.outputs.tag_name }}
+    steps:
+      - name: Determine tag
+        id: info
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "Release 提升为正式版: ${{ github.event.release.tag_name }}"
+          elif [ -n "${{ inputs.tag_name }}" ]; then
+            echo "tag_name=${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
+            echo "手动触发，版本: ${{ inputs.tag_name }}"
+          else
+            TAG=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
+              jq -r '.tag_name')
+            echo "tag_name=$TAG" >> $GITHUB_OUTPUT
+            echo "最新稳定版: $TAG"
+          fi
+
+  notify-sk-api-info:
+    runs-on: ubuntu-latest
+    needs: get-release-info
+    if: github.event_name == 'release' || inputs.mode != 'migrate'
+    steps:
+      - name: Trigger sk-api-info sync
+        run: |
+          echo "触发 sk-api-info 同步: ${{ needs.get-release-info.outputs.tag_name }}..."
+          curl -L -X POST \
+            -H "Authorization: Bearer ${{ secrets.PAT_SK_API_INFO }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/honjow/sk-api-info/dispatches \
+            -d "{
+              \"event_type\": \"skorionos_release\",
+              \"client_payload\": {
+                \"tag\": \"${{ needs.get-release-info.outputs.tag_name }}\",
+                \"is_stable\": true,
+                \"source_repo\": \"${{ github.repository }}\",
+                \"triggered_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+              }
+            }"
+          echo "sk-api-info 同步已触发"
+
+  update-mirror-compat:
+    runs-on: ubuntu-latest
+    needs: get-release-info
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [quark, mobile]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc 2>/dev/null || true
+          sudo apt-get clean 2>/dev/null || true
+
+      - name: Run mirror file manager
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUD_PROVIDER: ${{ matrix.provider }}
+          CLOUD_AUTH: ${{ matrix.provider == 'quark' && secrets.QUARK_COOKIE || secrets.MOBILE_CLOUD_AUTHORIZATION }}
+          MOBILE_CLOUD_AUTHORIZATION: ${{ secrets.MOBILE_CLOUD_AUTHORIZATION }}
+        run: |
+          MODE="${{ inputs.mode || 'update-root' }}"
+          bash ./.github/scripts/mirror-file-manager.sh \
+            "$MODE" \
+            "${{ needs.get-release-info.outputs.tag_name }}"
