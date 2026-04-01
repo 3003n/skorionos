@@ -151,7 +151,7 @@ alist_list_dirs() {
 _alist_fs_op() {
     local token="$1" endpoint="$2" payload="$3" op_desc="$4"
     local resp
-    resp=$(curl -s --connect-timeout 15 --max-time 300 -X POST "$ALIST_URL/api/fs/$endpoint" \
+    resp=$(curl -s --connect-timeout 15 --max-time 600 -X POST "$ALIST_URL/api/fs/$endpoint" \
         -H "Authorization: $token" -H "Content-Type: application/json" \
         -d "$payload" 2>&1) || {
         log_error "${op_desc}: curl 请求失败"
@@ -274,57 +274,53 @@ do_migrate() {
         $found || all_tags+=("$tag")
     done
 
-    # 将文件复制到对应的版本目录（copy 比 move 快，云盘通常支持服务端 copy）
+    # 将文件批量复制到对应的版本目录（每个 tag 一次 API 调用）
     local all_migrated=()
+    local tag_count=0
     for tag in "${all_tags[@]}"; do
+        tag_count=$((tag_count + 1))
         local tag_dir="$root_path/$tag"
         local delta_dir="$tag_dir/delta"
         alist_mkdir "$token" "$tag_dir" || true
-        alist_mkdir "$token" "$delta_dir" || true
 
-        # 复制全量文件
+        # 批量复制全量文件
         if [ -n "${full_by_tag[$tag]:-}" ]; then
             local names=()
             while IFS= read -r n; do
                 [ -n "$n" ] && names+=("$n")
             done <<< "${full_by_tag[$tag]}"
-            log_info "复制 ${#names[@]} 个全量文件到 $tag_dir"
-            for fname in "${names[@]}"; do
-                log_info "  复制: $fname"
-                if alist_copy "$token" "$root_path" "$tag_dir" "$fname"; then
-                    all_migrated+=("$fname")
-                else
-                    log_warning "  复制失败: $fname"
-                fi
-            done
+            log_info "[$tag_count/${#all_tags[@]}] 复制 ${#names[@]} 个全量文件到 $tag_dir"
+            if alist_copy "$token" "$root_path" "$tag_dir" "${names[@]}"; then
+                all_migrated+=("${names[@]}")
+            else
+                log_warning "全量文件复制失败: $tag_dir"
+            fi
         fi
 
-        # 复制增量文件
+        # 批量复制增量文件
         if [ -n "${delta_by_tag[$tag]:-}" ]; then
+            alist_mkdir "$token" "$delta_dir" || true
             local names=()
             while IFS= read -r n; do
                 [ -n "$n" ] && names+=("$n")
             done <<< "${delta_by_tag[$tag]}"
-            log_info "复制 ${#names[@]} 个增量文件到 $delta_dir"
-            for fname in "${names[@]}"; do
-                log_info "  复制: $fname"
-                if alist_copy "$token" "$root_path" "$delta_dir" "$fname"; then
-                    all_migrated+=("$fname")
-                else
-                    log_warning "  复制失败: $fname"
-                fi
-            done
+            log_info "[$tag_count/${#all_tags[@]}] 复制 ${#names[@]} 个增量文件到 $delta_dir"
+            if alist_copy "$token" "$root_path" "$delta_dir" "${names[@]}"; then
+                all_migrated+=("${names[@]}")
+            else
+                log_warning "增量文件复制失败: $delta_dir"
+            fi
         fi
     done
 
-    # 复制全部成功后，统一删除根目录中的原文件
+    # 复制完成后，统一删除根目录中的原文件
     if [ ${#all_migrated[@]} -gt 0 ]; then
         log_info "删除根目录中 ${#all_migrated[@]} 个已迁移的原文件..."
         alist_remove "$token" "$root_path" "${all_migrated[@]}" || \
             log_warning "部分原文件删除失败，请手动检查"
     fi
 
-    log_success "迁移完成，共创建 ${#all_tags[@]} 个版本目录，迁移 ${#all_migrated[@]} 个文件"
+    log_success "迁移完成，共处理 ${#all_tags[@]} 个版本目录，迁移 ${#all_migrated[@]} 个文件"
 
     # 如果指定了最新稳定版 tag，将其文件复制回根目录（向下兼容）
     if [ -n "$latest_tag" ]; then
