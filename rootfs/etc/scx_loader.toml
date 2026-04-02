@@ -1,4 +1,4 @@
-default_sched = "scx_bpfland"
+default_sched = "scx_lavd"
 default_mode = "Auto"
 
 [scheds.scx_lavd]
@@ -9,9 +9,9 @@ powersave_mode = ["--powersave", "--slice-max-us", "6000"]
 
 [scheds.scx_bpfland]
 auto_mode = ["--primary-domain", "auto", "--slice-us", "20000", "--slice-us-lag", "20000", "--idle-resume-us", "10000", "--cpufreq"]
-gaming_mode = ["--primary-domain", "performance", "--slice-us", "10000", "--slice-us-min", "500", "--slice-us-lag", "30000", "--idle-resume-us", "5000", "--cpufreq", "--disable-numa"]
-lowlatency_mode = ["--primary-domain", "performance", "--slice-us", "5000", "--slice-us-min", "500", "--slice-us-lag", "40000", "--idle-resume-us", "1000", "--cpufreq", "--local-kthreads"]
-powersave_mode = ["--primary-domain", "powersave", "--slice-us", "30000", "--slice-us-min", "2000", "--slice-us-lag", "10000", "--idle-resume-us", "30000", "--cpufreq", "--no-preempt"]
+gaming_mode = ["--primary-domain", "performance", "--slice-us", "10000", "--slice-min-us", "500", "--slice-us-lag", "30000", "--idle-resume-us", "5000", "--cpufreq", "--disable-numa"]
+lowlatency_mode = ["--primary-domain", "performance", "--slice-us", "5000", "--slice-min-us", "500", "--slice-us-lag", "40000", "--idle-resume-us", "1000", "--cpufreq", "--local-pcpu"]
+powersave_mode = ["--primary-domain", "powersave", "--slice-us", "30000", "--slice-min-us", "2000", "--slice-us-lag", "10000", "--idle-resume-us", "30000", "--cpufreq", "--throttle-us", "500"]
 
 [scheds.scx_rustland]
 # 用户空间Rust调度器，专注交互式工作负载（游戏、视频会议、直播）
