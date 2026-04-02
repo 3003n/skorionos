@@ -308,8 +308,8 @@ do_migrate() {
                 [ -n "$n" ] && names+=("$n")
             done <<< "${full_by_tag[$tag]}"
 
-            local existing
-            existing=$(alist_list_files "$token" "$tag_dir")
+            local existing=""
+            existing=$(alist_list_files "$token" "$tag_dir" 2>/dev/null) || true
             local to_move=() to_delete=()
             for fname in "${names[@]}"; do
                 if echo "$existing" | grep -qxF "$fname"; then
@@ -358,8 +358,8 @@ do_migrate() {
                 [ -n "$n" ] && names+=("$n")
             done <<< "${delta_by_tag[$tag]}"
 
-            local existing
-            existing=$(alist_list_files "$token" "$delta_dir")
+            local existing=""
+            existing=$(alist_list_files "$token" "$delta_dir" 2>/dev/null) || true
             local to_move=() to_delete=()
             for fname in "${names[@]}"; do
                 if echo "$existing" | grep -qxF "$fname"; then
@@ -427,8 +427,8 @@ do_update_root() {
         return 0
     fi
 
-    local delta_files
-    delta_files=$(alist_list_files "$token" "$delta_dir")
+    local delta_files=""
+    delta_files=$(alist_list_files "$token" "$delta_dir" 2>/dev/null) || true
 
     # 合并新版本所有文件名（用于对比）
     local new_files_all=""
@@ -508,10 +508,14 @@ main() {
 
     log_info "镜像站文件管理 - 模式: $mode, 云盘: $CLOUD_PROVIDER"
 
+    # 先设置基础清理 trap，确保 docker 容器始终被清理
+    trap 'docker stop temp-alist 2>/dev/null; docker rm temp-alist 2>/dev/null; rm -rf /tmp/alist-data 2>/dev/null || true' EXIT
+
     local admin_pw=$(deploy_alist)
     local token=$(get_alist_token "$admin_pw")
     local sid=$(mount_cloud_storage "$token")
 
+    # 更新 trap，加入存储卸载
     trap 'cleanup "$token" "$sid"' EXIT
 
     # 等待存储就绪
