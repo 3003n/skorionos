@@ -490,7 +490,9 @@ do_update_root() {
     fi
 
     local deleted=${#to_delete[@]}
-    local copied=$((${#to_copy_full[@]} + ${#to_copy_delta[@]:-0}))
+    local copied_delta=0
+    [ -n "${to_copy_delta+x}" ] && copied_delta=${#to_copy_delta[@]}
+    local copied=$((${#to_copy_full[@]} + copied_delta))
     if [ "$deleted" -eq 0 ] && [ "$copied" -eq 0 ]; then
         log_success "根目录文件已是最新版本 ($tag)，无需更新"
     else
