@@ -17,6 +17,7 @@ Environment variables
 
 import glob
 import os
+import signal
 import sys
 import threading
 import time
@@ -25,6 +26,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import requests
+
+
+def _handle_cancel(signum, _frame):
+    sig_name = signal.Signals(signum).name
+    print(f"[{time.strftime('%H:%M:%S')}] ⚠️ Received {sig_name}, terminating...", flush=True)
+    os._exit(1)
+
+
+signal.signal(signal.SIGINT, _handle_cancel)
+signal.signal(signal.SIGTERM, _handle_cancel)
 
 # ───────────────────────────── Configuration ─────────────────────────────
 
