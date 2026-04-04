@@ -4,25 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       target_tag:
-        description: "Target version tag (delta will be uploaded to this release)"
+        description: "目标版本 tag（增量包将上传到此 release）"
         required: true
         type: string
       base_tag:
-        description: "Base version tag (delta starting point)"
-        required: true
+        description: "基础版本 tag（留空则自动查找历史版本）"
+        required: false
         type: string
+        default: ""
       branches:
-        description: "Desktop branches, comma-separated (empty = auto-detect shared branches)"
+        description: "桌面分支，逗号分隔（留空则自动检测共有分支）"
         required: false
         type: string
         default: ""
       max_delta_ratio:
-        description: "Max delta/full size ratio %"
+        description: "增量包/全量镜像 最大比例 %"
         required: false
         type: string
         default: "70"
       delta_format:
-        description: "Delta format (empty = use repo variable DELTA_FORMAT)"
+        description: "增量格式（留空则使用仓库变量 DELTA_FORMAT）"
         required: false
         type: choice
         options:
@@ -31,7 +32,7 @@ on:
           - tar
         default: ""
       sync_to_cloud:
-        description: "Trigger cloud sync after publish"
+        description: "发布后触发网盘同步"
         required: false
         type: boolean
         default: true
@@ -54,10 +55,26 @@ jobs:
       - id: detect
         env:
           GH_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
+          GITHUB_TOKEN: ${{ secrets.PAT_SK_API_INFO }}
           TARGET_TAG: ${{ inputs.target_tag }}
           BASE_TAG: ${{ inputs.base_tag }}
           MANUAL_BRANCHES: ${{ inputs.branches }}
-        run: bash .github/scripts/detect-delta-branches.sh
+          DELTA_DEPTH: ${{ vars.DELTA_DEPTH || '1' }}
+          STABLE_DEPTH: ${{ vars.STABLE_DEPTH || '1' }}
+        run: |
+          if [ -n "$BASE_TAG" ]; then
+            echo "Using specified base: $BASE_TAG" >&2
+            bash .github/scripts/detect-delta-branches.sh
+          else
+            echo "No base tag specified, auto-finding bases..." >&2
+            bash .github/scripts/find-delta-bases.sh
+            # find-delta-bases outputs has_bases, normalize to has_branches
+            if grep -q 'has_bases=true' "$GITHUB_OUTPUT"; then
+              echo "has_branches=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "has_branches=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
 
   generate-delta:
     name: Delta ${{ matrix.branch }}
