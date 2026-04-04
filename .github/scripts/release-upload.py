@@ -45,8 +45,12 @@ FILE_PATTERNS = [
 
 MILESTONE_PCT = 20
 SUMMARY_INTERVAL_S = 30
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 SMALL_FILE_THRESHOLD = 1 * 1024 * 1024  # 1 MiB
+
+STALL_SPEED_BPS = 2 * 1024 * 1024  # 2 MiB/s – minimum acceptable upload speed
+STALL_TIMEOUT_S = 60  # abort after this many seconds of sustained low speed
+STALL_CHECK_INTERVAL_S = 10  # speed check frequency
 
 API_HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
@@ -127,8 +131,12 @@ class UploadTracker:
 # ───────────────────────────── Streaming reader ──────────────────────────
 
 
+class SlowUploadError(Exception):
+    """Raised when upload speed stays below threshold for too long."""
+
+
 class ProgressReader:
-    """File-like wrapper that logs upload milestones."""
+    """File-like wrapper that logs upload milestones and detects stalls."""
 
     def __init__(self, path: str, index_str: str, tracker: UploadTracker):
         self.name = os.path.basename(path)
@@ -140,23 +148,42 @@ class ProgressReader:
         self._t0 = time.time()
         self._last_milestone = 0
         self._small = self.size < SMALL_FILE_THRESHOLD
+        self._check_time = self._t0
+        self._check_bytes = 0
+        self._stall_accum = 0.0
 
     def read(self, n: int = -1) -> bytes:
         chunk = self._fh.read(n)
         if chunk:
             self._uploaded += len(chunk)
             self._tracker.on_progress(self.name, self._uploaded)
+            now = time.time()
             if not self._small and self.size > 0:
                 pct = self._uploaded * 100 // self.size
                 m = pct // MILESTONE_PCT * MILESTONE_PCT
                 if m > self._last_milestone and m < 100:
                     self._last_milestone = m
-                    elapsed = time.time() - self._t0
+                    elapsed = now - self._t0
                     spd = self._uploaded / elapsed if elapsed > 0 else 0
                     log(
                         f"📶 [{self._index}] {m:>3}%  "
                         f"{self.name}  {fmt_speed(spd)}"
                     )
+                interval = now - self._check_time
+                if interval >= STALL_CHECK_INTERVAL_S:
+                    recent_speed = (self._uploaded - self._check_bytes) / interval
+                    if recent_speed < STALL_SPEED_BPS:
+                        self._stall_accum += interval
+                        if self._stall_accum >= STALL_TIMEOUT_S:
+                            raise SlowUploadError(
+                                f"speed {fmt_speed(recent_speed)} sustained "
+                                f"below {fmt_speed(STALL_SPEED_BPS)} "
+                                f"for {self._stall_accum:.0f}s"
+                            )
+                    else:
+                        self._stall_accum = 0.0
+                    self._check_time = now
+                    self._check_bytes = self._uploaded
         return chunk
 
     def __len__(self) -> int:
@@ -263,12 +290,21 @@ def upload_one(
             return {"name": name, "size": size, "time": elapsed, "speed": spd, "ok": True}
         except Exception as e:
             last_err = e
+            is_stall = isinstance(e, SlowUploadError)
+            label = "STALL" if is_stall else "RETRY"
             if attempt < MAX_RETRIES:
-                wait = 5 * 2 ** (attempt - 1)
+                wait = 3 if is_stall else 5 * 2 ** (attempt - 1)
                 log(
-                    f"⚠️  [{tag}] RETRY  {name} "
+                    f"⚠️  [{tag}] {label}  {name} "
                     f"(attempt {attempt}/{MAX_RETRIES}, wait {wait}s): {e}"
                 )
+                # Stalled uploads may leave a partial asset; clean it before retry
+                if is_stall:
+                    try:
+                        rel = refresh_release(release)
+                        delete_dup_asset(rel, name)
+                    except Exception:
+                        pass
                 time.sleep(wait)
 
     log(f"❌ [{tag}] FAIL   {name}: {last_err}")
