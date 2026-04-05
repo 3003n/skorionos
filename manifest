@@ -170,6 +170,7 @@ export AUR_PACKAGES="\
 	gamescope-session-steam-sk-git \
 	gamescope-session-opengamepadui-git \
 	gamescope-sk \
+	gamemode-news-hook \
 	gpdconfig-git \
 	hhd \
 	hhd-ui \
