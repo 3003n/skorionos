@@ -246,6 +246,7 @@ export SERVICES="\
 "
 
 export USER_SERVICES="\
+	gamemode-news-hook \
 	pipewire \
 	podman \
 	sk-chos-user-daemon \
