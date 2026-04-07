@@ -27,6 +27,7 @@ export BASE_HYPRLAND_PACKAGES="\
 	kvantum-qt5 \
 	mako \
 	network-manager-applet \
+	noto-fonts \
 	noto-fonts-cjk \
 	nwg-look \
 	papirus-icon-theme \

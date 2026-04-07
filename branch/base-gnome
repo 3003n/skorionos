@@ -31,6 +31,7 @@ export BASE_GNOME_PACKAGES="\
 
 export EXTRA_GNOME_PACKAGES="\
 	gnome-terminal \
+	noto-fonts \
 	noto-fonts-cjk \
 	papirus-icon-theme \
 "

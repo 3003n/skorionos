@@ -33,6 +33,7 @@ export SUB_PACKAGES="\
 	blueman \
 	gnome-software \
 	gnome-terminal \
+	noto-fonts \
 	noto-fonts-cjk \
 	touchegg \
 	xdg-user-dirs-gtk \

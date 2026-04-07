@@ -47,6 +47,8 @@ export BASE_KDE_PACKAGES="\
 export EXTRA_KDE_PACKAGES="\
 	krdc \
 	krdp \
+	noto-fonts \
+	noto-fonts-cjk \
 "
 
 export BASE_KDE_AUR_PACKAGES="\
