@@ -12,3 +12,4 @@ test_*.sh
 
 pre-download
 doc
+.cursor
