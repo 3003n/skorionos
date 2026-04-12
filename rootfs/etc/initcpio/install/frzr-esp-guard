@@ -1,0 +1,23 @@
+#!/bin/bash
+build() {
+    add_binary fsck.fat
+    add_binary cmp
+    add_binary /usr/bin/bash
+    map add_binary /usr/bin/mkdir /usr/bin/rmdir /usr/bin/cat \
+        /usr/bin/cp /usr/bin/tr /usr/bin/sync
+
+    add_file /usr/lib/frzr/frzr-esp-guard /usr/lib/frzr/frzr-esp-guard 755
+    add_file /usr/lib/systemd/system/frzr-esp-guard.service
+
+    add_symlink /usr/lib/systemd/system/initrd.target.wants/frzr-esp-guard.service \
+        ../frzr-esp-guard.service
+}
+
+help() {
+    cat <<HELPEOF
+Checks and repairs the ESP (frzr_efi) filesystem at boot.
+Runs fsck.fat to fix FAT32 structural damage, then verifies
+kernel/initramfs integrity against btrfs deployment copies.
+Requires systemd in initramfs.
+HELPEOF
+}

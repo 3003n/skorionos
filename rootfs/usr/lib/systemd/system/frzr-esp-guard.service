@@ -1,0 +1,9 @@
+[Unit]
+Description=ESP filesystem check and boot file integrity guard
+DefaultDependencies=no
+After=initrd-fs.target
+Before=initrd.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/frzr/frzr-esp-guard

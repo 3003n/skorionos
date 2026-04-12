@@ -1,0 +1,118 @@
+#!/bin/bash
+# ESP filesystem check and boot file integrity guard
+# Runs during initramfs (systemd) phase, after root and frzr_root are mounted
+
+set -euo pipefail
+
+ROOTFS="/sysroot"
+ESP_DEV="/dev/disk/by-label/frzr_efi"
+ESP_MNT="/run/frzr_esp_guard"
+REPAIRED=0
+
+[ -e "$ESP_DEV" ] || exit 0
+
+# Phase 1: fsck.fat on unmounted ESP
+fsck.fat -a "$ESP_DEV" >/dev/null 2>&1 || true
+
+# Mount ESP temporarily
+mkdir -p "$ESP_MNT"
+if ! mount -t vfat "$ESP_DEV" "$ESP_MNT" 2>/dev/null; then
+    rmdir "$ESP_MNT" 2>/dev/null
+    exit 0
+fi
+
+cleanup() {
+    umount "$ESP_MNT" 2>/dev/null || true
+    rmdir "$ESP_MNT" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+# Parse deployment name from kernel cmdline (rootflags=subvol=deployments/<name>)
+DEPLOYMENT=""
+ROOTFLAGS=""
+for param in $(cat /proc/cmdline); do
+    case "$param" in
+        rootflags=*) ROOTFLAGS="${param#rootflags=}" ;;
+    esac
+done
+
+for opt in $(echo "$ROOTFLAGS" | tr ',' ' '); do
+    case "$opt" in
+        subvol=deployments/*) DEPLOYMENT="${opt#subvol=deployments/}" ;;
+    esac
+done
+
+if [ -z "$DEPLOYMENT" ]; then
+    exit 0
+fi
+
+SRC_BOOT="${ROOTFS}/frzr_root/deployments/${DEPLOYMENT}/boot"
+BACKUP_DIR="${ROOTFS}/frzr_root/boot_backup"
+
+# frzr_root should already be mounted at /sysroot/frzr_root via x-initrd.mount
+# Fallback: mount it ourselves if not available
+FRZR_MOUNTED=false
+if [ ! -d "${ROOTFS}/frzr_root/deployments" ]; then
+    FRZR_DEV="/dev/disk/by-label/frzr_root"
+    if [ -e "$FRZR_DEV" ]; then
+        mkdir -p "${ROOTFS}/frzr_root"
+        if mount -t btrfs -o subvol=/,ro "$FRZR_DEV" "${ROOTFS}/frzr_root" 2>/dev/null; then
+            FRZR_MOUNTED=true
+        fi
+    fi
+fi
+
+# Phase 2: verify and repair kernel/initramfs files
+# systemd-boot loads from ESP root level (e.g. /vmlinuz-linux, /initramfs-linux.img)
+# frzr-deploy also keeps copies under /<deployment>/ on ESP
+if [ -d "$SRC_BOOT" ]; then
+    for file in vmlinuz-linux initramfs-linux.img amd-ucode.img intel-ucode.img; do
+        src_file="${SRC_BOOT}/${file}"
+        [ -f "$src_file" ] || continue
+
+        # Check root-level ESP files (actually used by systemd-boot)
+        esp_root_file="${ESP_MNT}/${file}"
+        if [ ! -f "$esp_root_file" ] || ! cmp -s "$src_file" "$esp_root_file" 2>/dev/null; then
+            cp "$src_file" "$esp_root_file"
+            REPAIRED=$((REPAIRED + 1))
+        fi
+
+        # Check deployment-specific ESP files
+        esp_deploy_file="${ESP_MNT}/${DEPLOYMENT}/${file}"
+        if [ -d "${ESP_MNT}/${DEPLOYMENT}" ]; then
+            if [ ! -f "$esp_deploy_file" ] || ! cmp -s "$src_file" "$esp_deploy_file" 2>/dev/null; then
+                cp "$src_file" "$esp_deploy_file"
+                REPAIRED=$((REPAIRED + 1))
+            fi
+        fi
+    done
+fi
+
+# Phase 3: check and restore boot config
+frzr_conf="${ESP_MNT}/loader/entries/frzr.conf"
+if [ ! -f "$frzr_conf" ] || [ ! -s "$frzr_conf" ]; then
+    if [ -f "${BACKUP_DIR}/frzr.conf.bak" ]; then
+        mkdir -p "${ESP_MNT}/loader/entries"
+        cp "${BACKUP_DIR}/frzr.conf.bak" "$frzr_conf"
+        REPAIRED=$((REPAIRED + 1))
+    fi
+fi
+
+loader_conf="${ESP_MNT}/loader/loader.conf"
+if [ ! -f "$loader_conf" ] || [ ! -s "$loader_conf" ]; then
+    if [ -f "${BACKUP_DIR}/loader.conf.bak" ]; then
+        mkdir -p "${ESP_MNT}/loader"
+        cp "${BACKUP_DIR}/loader.conf.bak" "$loader_conf"
+        REPAIRED=$((REPAIRED + 1))
+    fi
+fi
+
+if [ "$REPAIRED" -gt 0 ]; then
+    sync
+    echo "frzr-esp-guard: repaired ${REPAIRED} file(s) on ESP"
+fi
+
+# Cleanup fallback frzr_root mount
+if [ "$FRZR_MOUNTED" = true ]; then
+    umount "${ROOTFS}/frzr_root" 2>/dev/null || true
+fi
