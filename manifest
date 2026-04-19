@@ -239,7 +239,6 @@ export SERVICES="\
 	steamos-manager \
 	sshd \
 	systemd-timesyncd \
-	swapfile \
 	sk-bind-mount \
 	sk-chos-daemon \
 	sk-chos-tool-autoupdate.timer \
