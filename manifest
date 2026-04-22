@@ -1,6 +1,6 @@
 #! /bin/bash
 
-export VERSION="55-10"
+export VERSION="55-11"
 export SYSTEM_DESC="SkorionOS"
 export SYSTEM_NAME="skorionos"
 export USERNAME="gamer"
