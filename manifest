@@ -66,6 +66,7 @@ export PACKAGES="\
 	intel-ucode \
 	intel-undervolt \
 	kitty-terminfo \
+	kmscon \
 	less \
 	lib32-curl \
 	lib32-fontconfig \
@@ -403,4 +404,8 @@ postinstallhook() {
 	if [[ "${VERSION}" =~ ^(55|54)- ]]; then
 		touch /.reset-etc
 	fi
+
+	# replace getty with kmscon
+	rm -f /etc/systemd/system/autovt@.service
+	systemctl enable kmsconvt@
 }
