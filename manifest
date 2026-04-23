@@ -408,4 +408,7 @@ postinstallhook() {
 	# replace getty with kmscon
 	rm -f /etc/systemd/system/autovt@.service
 	systemctl enable kmsconvt@
+	# tty1 is used by display-manager (sddm/gamescope), keep text consoles on other VTs.
+	systemctl disable --now getty@tty1.service || true
+	systemctl disable --now kmsconvt@tty1.service || true
 }
