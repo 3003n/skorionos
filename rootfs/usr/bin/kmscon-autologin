@@ -1,0 +1,140 @@
+#!/bin/bash
+
+set -euo pipefail
+shopt -s nullglob
+
+vt="${1:?vt index is required}"
+user="${2:-gamer}"
+debug_enabled="${KMSCON_AUTOLOGIN_DEBUG:-0}"
+
+# Disable hardware acceleration only when KMSCON_AUTOLOGIN_HWACCEL=0.
+# We default to enabled because the drm2d backend cannot rotate linear
+# dumb buffers on AMDGPU/DCN, leading to atomic-commit failures and
+# crashes when a panel_orientation correction is required.
+hwaccel_enabled="${KMSCON_AUTOLOGIN_HWACCEL:-1}"
+
+log_debug() {
+    [[ "$debug_enabled" == "1" ]] || return 0
+    # stderr from a systemd service is captured by journald.
+    echo "kmscon-autologin: $*" >&2
+}
+
+map_rotation_degrees() {
+    case "$1" in
+        0) echo "normal" ;;
+        1|90) echo "right" ;;
+        2|180) echo "upside-down" ;;
+        3|270) echo "left" ;;
+        *) return 1 ;;
+    esac
+}
+
+# Detect whether the kernel has already set a DRM panel_orientation on a
+# connected output. When it has, the patched kmscon reads the property
+# itself and applies the corrective rotation internally, so we must not
+# add --rotate (otherwise rotation is applied twice).
+#
+# The DRM property may come from one of:
+#   1. /sys/class/drm/<connector>/panel_orientation (older interface,
+#      not always exposed)
+#   2. video=<connector>:panel_orientation=<value> on the kernel cmdline
+#   3. panel_orientation=<value> on the kernel cmdline
+#   4. kernel DMI quirks (no userspace evidence; kmscon still sees it)
+drm_panel_orientation_present() {
+    local status_file connector_dir orientation_file value token
+
+    for status_file in /sys/class/drm/card*-*/status; do
+        connector_dir="${status_file%/status}"
+        [[ -r "$status_file" ]] || continue
+        [[ "$(< "$status_file")" == "connected" ]] || continue
+
+        orientation_file="$connector_dir/panel_orientation"
+        [[ -r "$orientation_file" ]] || continue
+
+        value="$(< "$orientation_file")"
+        value="${value//$'\n'/}"
+        # sysfs may expose the value as either plain text ("right_side_up")
+        # or with the active enum bracketed ("[Right Side Up] Normal ...").
+        if [[ "$value" == *"["*"]"* ]]; then
+            value="${value#*[}"
+            value="${value%%]*}"
+        fi
+        value="${value,,}"
+        value="${value// /_}"
+
+        if [[ -n "$value" && "$value" != "normal" ]]; then
+            echo "sysfs:${value}"
+            return 0
+        fi
+    done
+
+    for token in $(< /proc/cmdline); do
+        case "$token" in
+            panel_orientation=*)
+                value="${token#panel_orientation=}"
+                ;;
+            video=*panel_orientation=*)
+                value="${token#*panel_orientation=}"
+                value="${value%%,*}"
+                ;;
+            *)
+                continue
+                ;;
+        esac
+        value="${value,,}"
+        value="${value// /_}"
+        if [[ -n "$value" && "$value" != "normal" ]]; then
+            echo "cmdline:${value}"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Legacy fallback: fbcon=rotate:N only affects the kernel framebuffer VT,
+# not the DRM property. Treat it as a manual rotation hint when no DRM
+# panel_orientation is exposed.
+read_cmdline_legacy_rotation() {
+    local token value mapped
+    for token in $(< /proc/cmdline); do
+        case "$token" in
+            fbcon=rotate:*)
+                value="${token#fbcon=rotate:}"
+                value="${value%%,*}"
+                mapped="$(map_rotation_degrees "$value" || true)"
+                if [[ -n "$mapped" && "$mapped" != "normal" ]]; then
+                    echo "$mapped"
+                    return 0
+                fi
+                ;;
+        esac
+    done
+    return 1
+}
+
+rotate=""
+rotate_source=""
+
+if drm_value="$(drm_panel_orientation_present)"; then
+    rotate_source="${drm_value} (handled by kmscon)"
+elif legacy="$(read_cmdline_legacy_rotation)"; then
+    rotate="$legacy"
+    rotate_source="cmdline:fbcon"
+else
+    rotate_source="default:normal"
+fi
+
+log_debug "vt=$vt user=$user rotate='${rotate:-auto}' source=$rotate_source hwaccel=$hwaccel_enabled"
+
+kmscon_args=(
+    --vt "$vt"
+    --seats seat0
+    --no-switchvt
+    --login
+)
+
+[[ "$hwaccel_enabled" == "1" ]] && kmscon_args+=(--hwaccel)
+[[ -n "$rotate" ]] && kmscon_args+=(--rotate "$rotate")
+
+exec kmscon "${kmscon_args[@]}" -- /bin/login -f "$user"
