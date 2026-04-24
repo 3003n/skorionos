@@ -7,11 +7,13 @@ vt="${1:?vt index is required}"
 user="${2:-gamer}"
 debug_enabled="${KMSCON_AUTOLOGIN_DEBUG:-0}"
 
-# Disable hardware acceleration only when KMSCON_AUTOLOGIN_HWACCEL=0.
-# We default to enabled because the drm2d backend cannot rotate linear
-# dumb buffers on AMDGPU/DCN, leading to atomic-commit failures and
-# crashes when a panel_orientation correction is required.
-hwaccel_enabled="${KMSCON_AUTOLOGIN_HWACCEL:-1}"
+# Default to the drm2d backend (no --hwaccel). The patched kmscon
+# explicitly forces plane rotation to 0, which lets AMDGPU/DCN accept
+# the linear dumb buffers used by drm2d even when the kernel quirk has
+# applied a hardware panel-orientation rotation. drm2d avoids the
+# EGL/GBM/GLES init and tends to be more reliable across VT switches;
+# set KMSCON_AUTOLOGIN_HWACCEL=1 to opt back into drm3d/gltex.
+hwaccel_enabled="${KMSCON_AUTOLOGIN_HWACCEL:-0}"
 
 log_debug() {
     [[ "$debug_enabled" == "1" ]] || return 0
