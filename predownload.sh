@@ -276,12 +276,12 @@ all_download() {
 	# git clone --depth 1 $git_url $css_hhd_path/SBP-PS5-to-Handheld
 
 	# handheld-controller-glyphs
-	git_url="https://github.com/honjow/handheld-controller-glyphs.git"
-	if [ -d $css_hhd_path/handheld-controller-glyphs-sk ]; then
-		rm -rf $css_hhd_path/handheld-controller-glyphs-sk
-	fi
-	git clone --depth 1 $git_url $css_hhd_path/handheld-controller-glyphs-sk
-	rm -rf $css_hhd_path/handheld-controller-glyphs-sk/{.git,.gitignore}
+	# git_url="https://github.com/honjow/handheld-controller-glyphs.git"
+	# if [ -d $css_hhd_path/handheld-controller-glyphs-sk ]; then
+	# 	rm -rf $css_hhd_path/handheld-controller-glyphs-sk
+	# fi
+	# git clone --depth 1 $git_url $css_hhd_path/handheld-controller-glyphs-sk
+	# rm -rf $css_hhd_path/handheld-controller-glyphs-sk/{.git,.gitignore}
 
 	# pre download rime config
 	rime_git_url="https://github.com/iDvel/rime-ice.git"
