@@ -44,7 +44,11 @@ while IFS= read -r status_file; do
     entry_file="${dir}/delta-entry.json"
     [ -f "$entry_file" ] || continue
 
-    cp "${dir}"/*.skdelta "$OUTPUT_DIR/" 2>/dev/null || true
+    # Move the large delta payload into OUTPUT_DIR instead of copying it.
+    # A full delta publish can download tens of GiB of artifacts; copying all
+    # .skdelta files doubles disk usage and can exhaust the GitHub-hosted
+    # runner before any useful error is uploaded to Actions logs.
+    mv "${dir}"/*.skdelta "$OUTPUT_DIR/" 2>/dev/null || true
 
     # 从文件名中解析桌面分支 (如 skorionos-55_abc-gnome.from_54.skdelta -> gnome)
     branch=$(jq -r '.filename' "$entry_file" \
