@@ -114,6 +114,7 @@ if [ -z "${TEST_BUILD}" ]; then
 	# 重试次数
 	MAX_RETRIES=3
 	RETRY_COUNT=0
+	INSTALL_OK=0
 
 	while [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; do
 		RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -124,10 +125,11 @@ if [ -z "${TEST_BUILD}" ]; then
 		if ! arch-chroot ${BUILD_PATH} /bin/bash -c "cd / && /all-install.sh"; then
 			continue
 		fi
+		INSTALL_OK=1
 		break
 	done
 
-	if [ ${RETRY_COUNT} -eq ${MAX_RETRIES} ]; then
+	if [ ${INSTALL_OK} -ne 1 ]; then
 		echo ">>>>>> All install failed after ${MAX_RETRIES} attempts. Stopping..."
 		exit 1
 	fi
