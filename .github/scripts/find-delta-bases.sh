@@ -28,17 +28,19 @@ DELTA_DEPTH="${DELTA_DEPTH:-1}"
 STABLE_DEPTH="${STABLE_DEPTH:-1}"
 API_BASE="https://api.github.com"
 
-auth_header=()
+curl_args=(-s)
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-    auth_header=(-H "Authorization: token $GITHUB_TOKEN")
+    curl_args+=(-H "Authorization: token $GITHUB_TOKEN")
 fi
 
 echo "Finding delta bases for $TARGET_TAG (depth=$DELTA_DEPTH, stable_depth=$STABLE_DEPTH) in $REPO" >&2
 
 # 获取 releases 并按 created_at 降序排列（API 返回顺序不可靠，必须显式排序）
-releases=$(curl -s "${auth_header[@]}" \
+# Draft releases can show up in the list API with untagged-* URLs and no git tag ref;
+# skip them because download-release-image.sh resolves images through published tags.
+releases=$(curl "${curl_args[@]}" \
     "${API_BASE}/repos/${REPO}/releases?per_page=50" \
-    | jq 'sort_by(.created_at) | reverse')
+    | jq 'map(select(.draft != true and (.tag_name // "") != "")) | sort_by(.created_at) | reverse')
 
 if [ -z "$releases" ] || [ "$releases" = "null" ]; then
     echo "Failed to fetch releases" >&2
@@ -67,7 +69,7 @@ fi
 echo "Target channel: $([ "$target_is_unstable" = true ] && echo "UNSTABLE" || echo "stable/testing")" >&2
 
 # 从 tag 中提取主版本号 (如 55-1_abc -> 55)，用于防止向更大版本号查找
-target_major=$(echo "$TARGET_TAG" | grep -oP '^\d+' || true)
+target_major=$(echo "$TARGET_TAG" | sed -n 's/^\([0-9][0-9]*\).*/\1/p')
 echo "Target major version: ${target_major:-unknown}" >&2
 
 # 从资产文件名中提取桌面分支名 (如 skorionos-55-1_abc-gnome.skosys -> gnome)
@@ -94,10 +96,11 @@ for branch in $target_branches; do
     # 非 UNSTABLE 通道需要同时满足通用深度和稳定版深度
     need_stable=$( [ "$target_is_unstable" = false ] && echo "$STABLE_DEPTH" || echo "0" )
 
-    # 预先将 releases JSON 数组展开为 bash 数组，避免 break 导致 jq broken pipe
-    mapfile -t release_lines < <(echo "$releases" | jq -c '.[]')
+    # 预先将 releases JSON 数组展开为文本，避免 break 导致 jq broken pipe
+    release_lines=$(echo "$releases" | jq -c '.[]')
 
-    for rel in "${release_lines[@]}"; do
+    while IFS= read -r rel; do
+        [ -z "$rel" ] && continue
         [ "$found" -ge "$DELTA_DEPTH" ] && [ "$found_stable" -ge "$need_stable" ] && break
 
         tag=$(echo "$rel" | jq -r '.tag_name')
@@ -116,7 +119,7 @@ for branch in $target_branches; do
 
         # 版本号方向检查: 只查找主版本号 <= 目标的 release
         if [ -n "$target_major" ]; then
-            rel_major=$(echo "$tag" | grep -oP '^\d+' || true)
+            rel_major=$(echo "$tag" | sed -n 's/^\([0-9][0-9]*\).*/\1/p')
             if [ -n "$rel_major" ] && [ "$rel_major" -gt "$target_major" ]; then
                 continue
             fi
@@ -144,7 +147,7 @@ for branch in $target_branches; do
             echo "  Found base: $label" >&2
             matrix_entries+=("{\"base_tag\":\"$tag\",\"branch\":\"$branch\"}")
         fi
-    done
+    done <<< "$release_lines"
 done
 
 if [ ${#matrix_entries[@]} -eq 0 ]; then
