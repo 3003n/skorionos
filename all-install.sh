@@ -54,7 +54,10 @@ grep -E '^BUILDENV|^OPTIONS' /etc/makepkg.conf
 FULL_PACKAGES="${PACKAGE_OVERRIDES} ${PACKAGES} ${SUB_PACKAGES} ${AUR_PACKAGES} ${SUB_AUR_PACKAGES} ${SUB_LOCAL_PACKAGES}"
 
 # install packages
-pacman --noconfirm -S --overwrite '*' --disable-download-timeout ${FULL_PACKAGES} --needed
+# --assume-installed linux: wine/ntsync-autoload depend on linux; we provide
+# linux-skchos instead and IgnorePkg stock linux so it must not be pulled in.
+pacman --noconfirm -S --overwrite '*' --disable-download-timeout \
+	--assume-installed linux ${FULL_PACKAGES} --needed
 
 rm -rf /override_pkgs
 rm -rf /var/cache/pacman/pkg
