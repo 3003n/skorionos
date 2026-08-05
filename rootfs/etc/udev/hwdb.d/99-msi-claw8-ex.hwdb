@@ -1,0 +1,7 @@
+# MSI Claw 8 EX AI+ CG3EM (MS-1T91)
+# hhd 83-hhd.hwdb uses rnMS-1T* with b9=f15, which breaks the systemd
+# 8 EX mapping (b9=f16). This file sorts after 83-hhd and restores it.
+evdev:name:AT Translated Set 2 keyboard:dmi:*:rvnMicro-StarInternationalCo.,Ltd.:rnMS-1T91:*
+evdev:name:AT*:dmi:*:svnMicro-StarInternationalCo.,Ltd.:*:rnMS-1T91:*
+ KEYBOARD_KEY_db=f15
+ KEYBOARD_KEY_b9=f16
