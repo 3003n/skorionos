@@ -1,6 +1,6 @@
 #! /bin/bash
 
-export VERSION="56-3"
+export VERSION="56-4"
 export SYSTEM_DESC="SkorionOS"
 export SYSTEM_NAME="skorionos"
 export USERNAME="gamer"
@@ -165,6 +165,7 @@ export AUR_PACKAGES="\
 	ayaneo-platform-dkms-git \
 	ayn-platform-dkms-git \
 	chimeraos-device-quirks-sk \
+	coolercontrold-bin \
 	dmemcg-booster \
 	downgrade \
 	evdev-keepalive \

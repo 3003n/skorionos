@@ -94,6 +94,7 @@ export NVDIA_PACKAGES="\
 	nvidia-utils \
 	lib32-nvidia-utils \
 	nvidia-prime \
+	nvidia-container-toolkit \
 "
 
 export BASE_AUR_PACKAGES="\
